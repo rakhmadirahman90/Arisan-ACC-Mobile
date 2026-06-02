@@ -183,7 +183,7 @@ export default function RaffleView({
 
   // Pre-generate WhatsApp notification deep link
   const generateWaLink = (winner: Member) => {
-    const text = `🏆 *PENGUMUMAN PEMENANG ARISAN AUTO CLASER CLUB!* 🏆\n\nSelamat kepada *${winner.name.toUpperCase()}* yang menggunakan unit *${winner.vehicle}* telah sah terpilih memenangkan kocokan arisan *Putaran ke-${currentRound}* hari ini! 🎉🏁\n\n💰 *Total Jackpot Cash:* ${formatRupiah(prizePool)}\n🎁 *Tgl Kocok:* ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}\n\nSelamat gass polll Bro/Sist! Ditunggu traktirannya pas kopdar nanti! 🥂💨🏎️\n\n_Auto Claser Club - Speed, Pride & Family_`;
+    const text = `🏆 *PENGUMUMAN PEMENANG ARISAN!* 🏆\n\nSelamat kepada *${winner.name.toUpperCase()}* yang menggunakan kendaraan *${winner.vehicle}* telah sah terpilih memenangkan kocokan arisan *Putaran ke-${currentRound}* hari ini! 🎉\n\n💰 *Total Kas Arisan:* ${formatRupiah(prizePool)}\n🎁 *Tgl Kocok:* ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}\n\nSelamat! Ditunggu traktirannya pas kumpul arisan nanti! 🥂\n\n_Sistem Aplikasi Arisan_`;
     return `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
   };
 
@@ -248,11 +248,11 @@ export default function RaffleView({
 
             {/* Inline Admin bypass / login challenge */}
             <div className="border-t border-white/5 pt-3 max-w-[270px] mx-auto space-y-1.5">
-              <p className="text-[9px] text-zinc-400">Apakah Anda Marshall? Masuk untuk bypass gembok:</p>
+              <p className="text-[9px] text-zinc-400">Apakah Anda Admin? Masuk untuk bypass gembok:</p>
               <div className="flex gap-1.5 justify-center">
                 <input
                   type="password"
-                  placeholder="Password Marshall"
+                  placeholder="Password Admin"
                   value={localPass}
                   onChange={(e) => setLocalPass(e.target.value)}
                   onKeyDown={(e) => {
@@ -261,7 +261,7 @@ export default function RaffleView({
                         onSetAdmin(true);
                         setLocalPass("");
                       } else {
-                        alert("Sandi Marshall Salah!");
+                        alert("Sandi Admin Salah!");
                       }
                     }
                   }}
@@ -273,7 +273,7 @@ export default function RaffleView({
                       onSetAdmin(true);
                       setLocalPass("");
                     } else {
-                      alert("Sandi Marshall Salah!");
+                      alert("Sandi Admin Salah!");
                     }
                   }}
                   className="bg-red-600/10 hover:bg-red-650 text-red-400 border border-red-500/20 px-3 py-1 rounded-lg text-[9px] font-mono font-bold transition cursor-pointer shrink-0"
@@ -525,7 +525,7 @@ export default function RaffleView({
         <div className="bg-gradient-to-r from-zinc-950 to-zinc-900 border border-white/10 p-3.5 rounded-2xl flex flex-col gap-2 text-left font-sans shadow-lg">
           <label className="text-[9.5px] uppercase font-mono font-black text-amber-400 flex items-center gap-1.5">
             <Unlock className="w-3 h-3 text-amber-400" />
-            <span>Atur Pengatur Waktu Mesin Kocokan (Marshall Only)</span>
+            <span>Atur Waktu Pengocokan (Admin)</span>
           </label>
           <div className="flex gap-2">
             <input

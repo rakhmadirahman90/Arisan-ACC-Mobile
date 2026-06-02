@@ -114,7 +114,7 @@ export default function DashboardView({
   }, [paymentStatus, countdownSeconds, activeMemberPayment, onTogglePayment, paidMemberIds]);
 
   const meetupMapUrl = config.meetupMapQuery && config.meetupMapQuery.includes("google.com/maps")
-    ? (config.meetupMapQuery.includes("embed") ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.meetupAddress || "Kopdar Auto Claser Club")}` : config.meetupMapQuery)
+    ? (config.meetupMapQuery.includes("embed") ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.meetupAddress || "Tempat Kumpul Arisan")}` : config.meetupMapQuery)
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.meetupMapQuery || config.meetupAddress || "")}`;
 
   return (
@@ -125,7 +125,7 @@ export default function DashboardView({
       transition={{ duration: 0.3 }}
       className="p-5 space-y-5 overflow-y-auto max-h-[70vh] pb-24 scrollbar-none"
     >
-      {/* Header Banner - Auto Claser Garage Atmosphere */}
+      {/* Header Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-4 shadow-xl">
         <div className="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4">
           <DollarSign className={`w-40 h-40 ${activeLivery.textAccent}`} />
@@ -220,7 +220,7 @@ export default function DashboardView({
 
           <div className="absolute bottom-3 left-3 right-3 text-left">
             <h4 className="text-sm font-black text-white tracking-tight leading-tight flex items-center gap-1.5 drop-shadow-md">
-              {config.meetupLocationName || "Paddock Club Lounge"}
+              {config.meetupLocationName || "Lokasi Kumpul Arisan"}
             </h4>
             <p className="text-[10px] text-zinc-300 font-mono mt-0.5 drop-shadow-sm flex items-center gap-1">
               <span>📅</span> {config.meetupTime || "Segera diumumkan"}
@@ -775,7 +775,7 @@ export default function DashboardView({
                       }}
                       className="text-[9px] font-mono text-zinc-500 hover:text-[#10b981] underline block mx-auto pt-1.5 cursor-pointer"
                     >
-                      Bypass & Luluskan Instan (Marshall Override)
+                      Bypass & Luluskan Instan (Admin Override)
                     </button>
                   </div>
                 )}

@@ -206,6 +206,10 @@ export default function SettingsView({
 
   const handleImport = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin) {
+      alert("Hanya Admin yang dapat mengunggah berkas cadangan.");
+      return;
+    }
     if (!importText.trim()) return;
 
     const ok = onImportData(importText.trim());
@@ -232,7 +236,7 @@ export default function SettingsView({
         <div className="flex justify-between items-center pb-2 border-b border-white/5">
           <h3 className="text-[10px] font-black uppercase font-mono text-zinc-100 flex items-center gap-1.5">
             {isAdmin ? <Unlock className="w-3.5 h-3.5 text-emerald-400" /> : <Lock className="w-3.5 h-3.5 text-zinc-400" />}
-            Akses Marshall (Admin)
+            Akses Admin
           </h3>
           <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded ${isAdmin ? "bg-emerald-500/10 text-emerald-400" : "bg-zinc-800 text-zinc-500"}`}>
             {isAdmin ? "ADMIN ON" : "LOCKED"}
@@ -242,7 +246,7 @@ export default function SettingsView({
         {isAdmin ? (
           <div className="space-y-2">
             <div className="text-[10px] text-zinc-300 leading-normal">
-              Anda berselancar sebagai <strong className={`${activeLivery.textAccent}`}>Marshall Utama</strong>. Tombol simpan amandemen, pengaturan jadwal piala, & reset data arisan terbuka secara penuh.
+              Anda berselancar sebagai <strong className={`${activeLivery.textAccent}`}>Admin Utama</strong>. Tombol simpan amandemen, pengaturan jadwal piala, & reset data arisan terbuka secara penuh.
             </div>
             <button
               onClick={() => onSetAdmin(false)}
@@ -254,7 +258,7 @@ export default function SettingsView({
         ) : (
           <div className="space-y-2">
             <p className="text-[10px] text-zinc-404 leading-normal">
-              Masukkan sandi rahasia Marshall untuk merubah nominal arisan, livery club, atau menjadwalkan timer kocokan aktif.
+              Masukkan sandi rahasia Admin untuk merubah nominal arisan, tema aplikasi, atau pengaturan admin lainnya.
             </p>
             <div className="flex gap-2">
               <input
@@ -378,14 +382,14 @@ export default function SettingsView({
         {/* KOPDAR GATHERING SETTINGS */}
         <div className="space-y-3.5 border-t border-white/5 pt-3">
           <h4 className={`text-[9px] uppercase font-mono font-bold tracking-wider ${activeLivery.textAccent}`}>
-            📍 Penjadwalan Kopdar & Lokasi Pertemuan
+            📍 Jadwal & Lokasi Kumpul Arisan
           </h4>
 
           <div className="space-y-1.5">
-            <label className="block text-[9px] text-zinc-400 font-mono uppercase">Nama Lokasi Kopdar</label>
+            <label className="block text-[9px] text-zinc-400 font-mono uppercase">Nama Lokasi Kumpul</label>
             <input
               type="text"
-              placeholder="Contoh: Paddock Kopi Sentul"
+              placeholder="Contoh: Tempat Nongkrong Arisan"
               value={meetupLocationNameInput}
               onChange={(e) => setMeetupLocationNameInput(e.target.value)}
               disabled={!isAdmin}
@@ -394,7 +398,7 @@ export default function SettingsView({
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-[9px] text-zinc-400 font-mono uppercase">Alamat Lengkap Kopdar (Teks Tampilan)</label>
+            <label className="block text-[9px] text-zinc-400 font-mono uppercase">Alamat Lengkap (Teks Tampilan)</label>
             <textarea
               rows={2}
               placeholder="Contoh: Jl. Sirkuit Sentul No.88, Sentul, Kec. Babakan Madang, Bogor"
@@ -471,7 +475,7 @@ export default function SettingsView({
                   if (isEmbedUrl) {
                     return (
                       <p className="text-[9px] text-[#22c55e] bg-emerald-500/10 border border-emerald-500/20 px-2 py-1.5 rounded leading-relaxed font-sans flex items-center gap-1.5 font-bold">
-                        <span>🚀</span> MAPS EMBED AKURAT AKTIF: Peta Kopdar presisi 100% menggunakan kode sematkan resmi Google Maps!
+                        <span>🚀</span> MAPS EMBED AKURAT AKTIF: Peta lokasi kumpul presisi 100% menggunakan kode sematkan resmi Google Maps!
                       </p>
                     );
                   }
@@ -520,7 +524,7 @@ export default function SettingsView({
 
           <div className="space-y-3.5">
             <div className="space-y-1.5">
-              <label className="block text-[9px] text-zinc-400 font-mono uppercase">Waktu Kumpul Kopdar</label>
+              <label className="block text-[9px] text-zinc-400 font-mono uppercase">Waktu Kumpul</label>
               <input
                 type="text"
                 placeholder="Contoh: Sabtu, 20 Juni 19:30 WIB"
@@ -732,7 +736,7 @@ export default function SettingsView({
         </h3>
 
         <p className="text-[10px] text-zinc-404 font-medium leading-relaxed">
-          Amankan basis data arisan Auto Claser Anda dengan mengunduh salinan cadangan instan untuk diunggah di handphone lain.
+          Amankan basis data aplikasi arisan Anda dengan mengunduh salinan cadangan instan untuk diunggah di handphone/perangkat lain.
         </p>
 
         <div className="flex gap-2 pt-1">
@@ -767,7 +771,8 @@ export default function SettingsView({
           />
           <button
             type="submit"
-            className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-zinc-300 font-bold font-mono text-[9.5px] py-1 rounded-md transition active:scale-95 cursor-pointer"
+            disabled={!isAdmin}
+            className={`w-full font-bold font-mono text-[9.5px] py-1 rounded-md transition cursor-pointer ${isAdmin ? "bg-white/5 border border-white/10 hover:bg-white/10 text-zinc-300 active:scale-95" : "bg-black/20 border border-white/5 text-zinc-600 cursor-not-allowed"}`}
           >
             PROSES UNGGAH CADANGAN
           </button>
@@ -798,10 +803,10 @@ export default function SettingsView({
         <button
           onClick={() => {
             if (!isAdmin) {
-              alert("Hanya Admin yang dapat melakukan Reset Ulang Semua Data. Silakan login dari menu Akses Marshall di bawah.");
+              alert("Hanya Admin yang dapat melakukan Reset Ulang Semua Data. Silakan login dari menu Akses Admin di bawah.");
               return;
             }
-            if (confirm("Apakah Anda yakin ingin menghapus semua data arisan Auto Claser dan mereset ke pengaturan awal? Tindakan ini tidak dapat dibatalkan.")) {
+            if (confirm("Apakah Anda yakin ingin menghapus semua data aplikasi arisan ini dan mereset ke pengaturan awal? Tindakan ini tidak dapat dibatalkan.")) {
               onResetData();
             }
           }}

@@ -12,16 +12,19 @@ import {
   X, 
   Check, 
   Trophy,
-  Crown
+  Crown,
+  Pencil
 } from "lucide-react";
 
 interface MembersViewProps {
   members: Member[];
   onAddMember: (memberData: Omit<Member, "id" | "joinDate" | "wonRound">) => void;
   onDeleteMember: (id: string) => void;
+  onEditMember?: (id: string, memberData: Omit<Member, "id" | "joinDate" | "wonRound">) => void;
   activeLivery: any;
   payments?: PaymentStatus[];
   config?: ArisanConfig;
+  isAdmin?: boolean;
 }
 
 const PAINT_COLORS = [
@@ -39,19 +42,42 @@ export default function MembersView({
   members,
   onAddMember,
   onDeleteMember,
+  onEditMember,
   activeLivery,
   payments = [],
   config,
+  isAdmin = false,
 }: MembersViewProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   
   // New member form states
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [vehicle, setVehicle] = useState("");
   const [phone, setPhone] = useState("");
   const [selectedColor, setSelectedColor] = useState(PAINT_COLORS[0].class);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const handleOpenAdd = () => {
+    setEditingId(null);
+    setName("");
+    setVehicle("");
+    setPhone("");
+    setSelectedColor(PAINT_COLORS[0].class);
+    setErrorMsg("");
+    setIsAddOpen(true);
+  };
+
+  const handleOpenEdit = (member: Member) => {
+    setEditingId(member.id);
+    setName(member.name);
+    setVehicle(member.vehicle);
+    setPhone(member.phone);
+    setSelectedColor(member.avatarColor || PAINT_COLORS[0].class);
+    setErrorMsg("");
+    setIsAddOpen(true);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,17 +104,27 @@ export default function MembersView({
       sanitizedPhone = "6281234567890"; // default mock
     }
 
-    onAddMember({
-      name: name.trim(),
-      vehicle: vehicle.trim(),
-      phone: sanitizedPhone,
-      avatarColor: selectedColor,
-    });
+    if (editingId && onEditMember) {
+      onEditMember(editingId, {
+        name: name.trim(),
+        vehicle: vehicle.trim(),
+        phone: sanitizedPhone,
+        avatarColor: selectedColor,
+      });
+    } else {
+      onAddMember({
+        name: name.trim(),
+        vehicle: vehicle.trim(),
+        phone: sanitizedPhone,
+        avatarColor: selectedColor,
+      });
+    }
 
     // Reset Form
     setName("");
     setVehicle("");
     setPhone("");
+    setEditingId(null);
     setIsAddOpen(false);
   };
 
@@ -114,19 +150,21 @@ export default function MembersView({
           <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
           <input
             type="text"
-            placeholder="Cari pembalap / mobil claser..."
+            placeholder="Cari anggota arisan..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={`w-full bg-white/5 border border-white/10 backdrop-blur-md rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:${activeLivery.borderFocus}`}
           />
         </div>
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className={`bg-white/5 hover:bg-white/10 border border-white/10 ${activeLivery.textAccent} p-2 rounded-xl transition flex items-center justify-center cursor-pointer`}
-          title="Tambah Paddock Member"
-        >
-          <UserPlus className="w-4.5 h-4.5" />
-        </button>
+        {isAdmin && (
+          <button
+            onClick={handleOpenAdd}
+            className={`bg-white/5 hover:bg-white/10 border border-white/10 ${activeLivery.textAccent} p-2 rounded-xl transition flex items-center justify-center cursor-pointer`}
+            title="Tambah Anggota"
+          >
+            <UserPlus className="w-4.5 h-4.5" />
+          </button>
+        )}
       </div>
 
       {/* Slide down Add Member Panel */}
@@ -140,7 +178,7 @@ export default function MembersView({
           >
             <div className="flex justify-between items-center pb-2 border-b border-white/5">
               <h3 className={`text-xs font-black uppercase font-mono ${activeLivery.textAccent} flex items-center gap-1.5`}>
-                <Crown className={`w-4 h-4 ${activeLivery.textAccent}`} /> Register New Claser
+                <Crown className={`w-4 h-4 ${activeLivery.textAccent}`} /> {editingId ? "Edit Anggota" : "Daftar Anggota Baru"}
               </h3>
               <button 
                 onClick={() => setIsAddOpen(false)}
@@ -194,7 +232,7 @@ export default function MembersView({
               {/* Vehicle Stamp Paint Selector */}
               <div>
                 <label className="block text-[10px] uppercase font-mono font-bold text-zinc-400 mb-1.5">
-                  Warna Livery (Paint Job)
+                  Tema Profil
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {PAINT_COLORS.map((color) => (
@@ -223,7 +261,7 @@ export default function MembersView({
                 type="submit"
                 className={`w-full bg-gradient-to-r ${activeLivery.btnGrad} text-white font-bold font-mono text-xs py-2.5 px-4 rounded-xl mt-1 transition active:scale-98 cursor-pointer shadow-lg ${activeLivery.shadowAccent}`}
               >
-                MASUKKAN KE PADDOCK 🚗💨
+                {editingId ? "SIMPAN PERUBAHAN 💾" : "TAMBAH ANGGOTA 👤"}
               </button>
             </form>
           </motion.div>
@@ -234,7 +272,7 @@ export default function MembersView({
       <div className="space-y-2.5">
         <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-500 font-mono flex items-center gap-2 px-1">
           <Users className="w-4 h-4 text-zinc-500" />
-          Daftar Anggota Auto Claser ({filteredMembers.length})
+          Daftar Anggota Arisan ({filteredMembers.length})
         </h3>
 
         <div className="space-y-2">
@@ -339,15 +377,24 @@ export default function MembersView({
                     </div>
                   </div>
 
-                  <div className="flex items-center">
-                    <button
-                      onClick={() => onDeleteMember(member.id)}
-                      className="p-2 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/10 rounded-lg transition active:scale-90 cursor-pointer"
-                      title="Keluarkan dari paddock"
-                    >
-                      <Trash2 className="w-4.5 h-4.5" />
-                    </button>
-                  </div>
+                  {isAdmin && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEdit(member)}
+                        className="p-2 text-zinc-600 hover:text-blue-400 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/10 rounded-lg transition active:scale-90 cursor-pointer"
+                        title="Edit data anggota"
+                      >
+                        <Pencil className="w-4.5 h-4.5" />
+                      </button>
+                      <button
+                        onClick={() => onDeleteMember(member.id)}
+                        className="p-2 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/10 rounded-lg transition active:scale-90 cursor-pointer"
+                        title="Keluarkan dari daftar"
+                      >
+                        <Trash2 className="w-4.5 h-4.5" />
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
               );
             })

@@ -169,6 +169,12 @@ export default function App() {
     }
   };
 
+  // Edit Member
+  const handleEditMember = (id: string, memberData: Partial<Member>) => {
+    if (!isAdmin) return;
+    setMembers(members.map((m) => (m.id === id ? { ...m, ...memberData } : m)));
+  };
+
   // Toggle Payment for a specific member in the current round
   const handleTogglePayment = (memberId: string) => {
     if (!isAdmin) return;
@@ -397,7 +403,7 @@ export default function App() {
               </div>
               <div>
                 <p className="text-xs font-black text-white uppercase tracking-tight">Verified Club</p>
-                <p className="text-[10px] text-zinc-500 font-mono">Auto Claser ID: 492</p>
+                <p className="text-[10px] text-zinc-500 font-mono">Panel Aplikasi Arisan</p>
               </div>
             </div>
           </div>
@@ -406,7 +412,7 @@ export default function App() {
           <div className="p-4.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-3 font-sans">
             <div>
               <p className={`text-[10px] uppercase tracking-widest ${activeLivery.textAccent} font-bold mb-1 font-mono`}>
-                Paddock Jackpot (Arisan)
+                Total Kas Arisan
               </p>
               <p className="text-lg font-mono font-black text-white tracking-tight">
                 {formatRupiah(currentPotSum)}
@@ -417,7 +423,7 @@ export default function App() {
             </div>
             <div className="border-t border-white/5 pt-2.5">
               <p className="text-[10px] uppercase tracking-widest text-amber-500 font-bold mb-1 font-mono">
-                Uang Konsumsi Kopdar
+                Uang Konsumsi
               </p>
               <p className="text-sm font-mono font-black text-white tracking-tight">
                 {formatRupiah(currentConsumptionSum)}
@@ -433,7 +439,7 @@ export default function App() {
             <p className="text-[10px] uppercase tracking-widest text-emerald-400 font-bold mb-1.5 font-mono">
               Target Agenda
             </p>
-            <p className="text-xs font-black text-white">Kopdar Claser Senayan</p>
+            <p className="text-xs font-black text-white">Jadwal Pertemuan Mendatang</p>
             <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">
               {nextEventDate} • 14:00 WIB
             </p>
@@ -533,9 +539,11 @@ export default function App() {
                   members={members}
                   onAddMember={handleAddMember}
                   onDeleteMember={handleDeleteMember}
+                  onEditMember={handleEditMember}
                   activeLivery={activeLivery}
                   payments={payments}
                   config={config}
+                  isAdmin={isAdmin}
                 />
               )}
 
