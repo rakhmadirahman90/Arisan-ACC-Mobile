@@ -1,0 +1,6 @@
+{
+  "name": "Claser Arisan Mobile",
+  "description": "Aplikasi Arisan Kontemporer Berbasis Mobile untuk Komunitas Auto Claser Club",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
