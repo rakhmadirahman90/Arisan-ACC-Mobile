@@ -31,6 +31,7 @@ interface DashboardViewProps {
   onNavigateToKocokan: () => void;
   onTogglePayment: (memberId: string) => void;
   activeLivery: any;
+  isAdmin: boolean;
 }
 
 export default function DashboardView({
@@ -41,6 +42,7 @@ export default function DashboardView({
   onNavigateToKocokan,
   onTogglePayment,
   activeLivery,
+  isAdmin,
 }: DashboardViewProps) {
   // Current round metadata
   const currentRound = config.currentRound;
@@ -73,7 +75,6 @@ export default function DashboardView({
   // Payment gateway modal states
   const [activeMemberPayment, setActiveMemberPayment] = useState<Member | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<"qris" | "bank" | "cash">("qris");
-  const [selectedBank, setSelectedBank] = useState<"bca" | "mandiri">("bca");
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "waiting" | "verified">("idle");
   const [countdownSeconds, setCountdownSeconds] = useState<number>(3);
   const [progressText, setProgressText] = useState<string>("Sedang menyiapkan lembar tagihan...");
@@ -298,7 +299,9 @@ export default function DashboardView({
           <p className="text-[9px] text-zinc-400 leading-tight">Putaran {currentRound} otomatis LUNAS didukung sensor mutasi bank otomatis.</p>
         </div>
         <button
+          disabled={!isAdmin}
           onClick={() => {
+            if (!isAdmin) return;
             // Find first unpaid member to trigger mock billing
             const firstUnpaid = members.find(m => !paidMemberIds.includes(m.id));
             if (firstUnpaid) {
@@ -311,10 +314,12 @@ export default function DashboardView({
             setCountdownSeconds(3);
             setProgressText("Sedang menyiapkan lembar tagihan...");
           }}
-          className={`px-2.5 py-1.5 bg-white/10 hover:bg-white/15 text-white text-[9.5px] font-black font-mono tracking-tight rounded-xl border border-white/10 transition active:scale-95 cursor-pointer flex items-center gap-1 shrink-0`}
+          className={`px-2.5 py-1.5 ${
+            isAdmin ? "bg-white/10 hover:bg-white/15 cursor-pointer active:scale-95" : "bg-white/5 opacity-50 cursor-not-allowed"
+          } text-white text-[9.5px] font-black font-mono tracking-tight rounded-xl border border-white/10 transition flex items-center gap-1 shrink-0`}
         >
           <Smartphone className="w-3 h-3 text-emerald-400" />
-          BAYAR ARISAN ⚡
+          {isAdmin ? "BAYAR ARISAN ⚡" : "DIBLOKIR 🔒"}
         </button>
       </div>
 
@@ -408,7 +413,9 @@ export default function DashboardView({
 
                 <div className="flex items-center gap-2">
                   <button
+                    disabled={!isAdmin}
                     onClick={() => {
+                      if (!isAdmin) return;
                       if (isPaid) {
                         // Undo payment immediately if paid (for admin correction ease)
                         onTogglePayment(member.id);
@@ -421,13 +428,15 @@ export default function DashboardView({
                         setProgressText("Sedang menyiapkan lembar tagihan...");
                       }
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold font-mono tracking-tight transition active:scale-95 cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold font-mono tracking-tight transition ${
+                      isAdmin ? "active:scale-95 cursor-pointer" : "cursor-not-allowed opacity-80"
+                    } ${
                       isPaid 
                         ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25" 
                         : "bg-rose-500/15 text-rose-400 border border-rose-500/20 hover:bg-rose-500/25"
                     }`}
                   >
-                    {isPaid ? "LUNAS ✔" : "BAYAR ⚡"}
+                    {isPaid ? "LUNAS ✔" : (isAdmin ? "BAYAR ⚡" : "BELUM LUNAS")}
                   </button>
                 </div>
               </div>
@@ -559,33 +568,12 @@ export default function DashboardView({
                       </button>
                     </div>
 
-                    {/* Bank Selection detail if bank selected */}
                     {selectedMethod === "bank" && (
-                      <div className="bg-black/30 border border-white/5 rounded-xl p-2.5 space-y-2">
-                        <label className="text-[8.5px] text-zinc-500 uppercase tracking-wide font-bold">Pilih Bank Rekening:</label>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedBank("bca")}
-                            className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-bold font-mono transition text-center cursor-pointer ${
-                              selectedBank === "bca" 
-                                ? "bg-blue-600/20 text-blue-400 border border-blue-500/40" 
-                                : "bg-zinc-900 text-zinc-500 border border-transparent"
-                            }`}
-                          >
-                            BCA VIRTUAL
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedBank("mandiri")}
-                            className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-bold font-mono transition text-center cursor-pointer ${
-                              selectedBank === "mandiri" 
-                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/40" 
-                                : "bg-zinc-900 text-zinc-500 border border-transparent"
-                            }`}
-                          >
-                            MANDIRI VIRTUAL
-                          </button>
+                      <div className="bg-black/30 border border-emerald-500/10 rounded-xl p-2.5 space-y-1">
+                        <label className="text-[8.5px] text-zinc-500 uppercase tracking-wide font-bold">Tujuan Transfer Bank:</label>
+                        <div className="flex items-center gap-2 p-1.5 px-2 bg-emerald-500/5 text-emerald-400 font-mono text-[9px] border border-emerald-500/20 rounded-lg">
+                          <span>Bank Mandiri</span>
+                          <span className="font-bold">1700000911135</span>
                         </div>
                       </div>
                     )}
@@ -609,7 +597,7 @@ export default function DashboardView({
                       </div>
                     ) : (
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           if (selectedMethod === "cash") {
                             // Instant cash approval and toggle
                             if (activeMemberPayment) {
@@ -621,13 +609,63 @@ export default function DashboardView({
                             setPaymentStatus("verified");
                           } else {
                             setPaymentStatus("waiting");
-                            setCountdownSeconds(3);
-                            setProgressText("Sedang menjalin komunikasi dengan Server API Bank...");
+                            setProgressText("Meminta Token Pembayaran ke API Midtrans...");
+                            
+                            try {
+                              const response = await fetch("/api/checkout", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  memberId: activeMemberPayment?.id,
+                                  memberName: activeMemberPayment?.name,
+                                  phone: activeMemberPayment?.phone,
+                                  round: currentRound,
+                                  amount: config.contributionAmount
+                                })
+                              });
+                              const data = await response.json();
+                              
+                              if (data.simulated) {
+                                setCountdownSeconds(3); // Start local fallback
+                              } else if (data.token) {
+                                setProgressText("Menunggu instruksi dari Midtrans Snap UI...");
+                                // Disable the local mockup screen countdown completely by setting it to large number
+                                setCountdownSeconds(9999);
+                                
+                                if (typeof (window as any).snap !== "undefined") {
+                                  (window as any).snap.pay(data.token, {
+                                    onSuccess: function() {
+                                      if (activeMemberPayment && !paidMemberIds.includes(activeMemberPayment.id)) {
+                                        onTogglePayment(activeMemberPayment.id);
+                                      }
+                                      setPaymentStatus("verified");
+                                    },
+                                    onPending: function() {
+                                      alert("Menunggu pembayaran! Silakan cek notifikasi aplikasi atau ATM Anda.");
+                                      setActiveMemberPayment(null);
+                                    },
+                                    onError: function() {
+                                      alert("Pembayaran Gagal di Midtrans.");
+                                      setActiveMemberPayment(null);
+                                    },
+                                    onClose: function() {
+                                      setActiveMemberPayment(null);
+                                    }
+                                  });
+                                } else {
+                                  alert("Midtrans Core Script belum dimuat oleh browser.");
+                                  setCountdownSeconds(3);
+                                }
+                              }
+                            } catch (err) {
+                              console.error(err);
+                              setCountdownSeconds(3);
+                            }
                           }
                         }}
                         className={`w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-black font-mono text-xs py-2.5 px-4 rounded-xl transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-emerald-500/10 shrink-0`}
                       >
-                        {selectedMethod === "cash" ? "TERIMA TUNAI & SET LUNAS ✔" : "SIMULASI TRANSFER SEKARANG ⚡"}
+                        {selectedMethod === "cash" ? "TERIMA TUNAI & SET LUNAS ✔" : "PROSES ONLINE TRANSAKSI ⚡"}
                       </button>
                     )}
                   </div>
@@ -674,26 +712,22 @@ export default function DashboardView({
                       <div className="space-y-3 text-left bg-black/40 border border-white/5 p-3.5 rounded-2xl">
                         <div className="flex justify-between items-center pb-2 border-b border-white/5">
                           <span className="text-[10px] font-mono font-black text-blue-400 uppercase">
-                            {selectedBank === "bca" ? "BCA VIRTUAL ACCOUNT" : "MANDIRI VIRTUAL ACCOUNT"}
+                            MANDIRI TRANSFER
                           </span>
                           <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
                         </div>
                         
                         <div className="space-y-1">
-                          <span className="text-[8.5px] font-mono text-zinc-500 uppercase block">Nomor Rekening Virtual:</span>
+                          <span className="text-[8.5px] font-mono text-zinc-500 uppercase block">Nomor Rekening Mandiri:</span>
                           <div className="flex items-center justify-between bg-black/50 p-2.5 rounded-xl border border-white/5 font-mono">
                             <span className="text-sm font-black tracking-widest text-[#38bdf8]">
-                              {selectedBank === "bca" ? "889025" : "890218"}{activeMemberPayment.phone.replace(/[^0-9]/g, "").substring(0, 6)}
+                              1700000911135
                             </span>
                             <button
                               onClick={() => {
                                 setCopysuccess(true);
                                 setTimeout(() => setCopysuccess(false), 2000);
-                                navigator.clipboard.writeText(
-                                  selectedBank === "bca" 
-                                    ? `889025${activeMemberPayment.phone.replace(/[^0-9]/g, "").substring(0, 6)}` 
-                                    : `890218${activeMemberPayment.phone.replace(/[^0-9]/g, "").substring(0, 6)}`
-                                );
+                                navigator.clipboard.writeText("1700000911135");
                               }}
                               className="p-1 px-2 bg-white/5 hover:bg-white/10 rounded-lg text-[8.5px] font-mono font-black border border-white/5 hover:border-white/10 text-white cursor-pointer active:scale-95"
                             >
@@ -702,9 +736,9 @@ export default function DashboardView({
                           </div>
                         </div>
 
-                        <div className="space-y-0.5 text-[9px] text-zinc-405">
-                          <div>Atas Nama: <strong className="text-zinc-200">ARISAN CLASER - {activeMemberPayment.name.toUpperCase()}</strong></div>
-                          <div className="text-[8px] text-zinc-500">* Transfer nominal persis sampai digit terakhir untuk memicu lunas instan.</div>
+                        <div className="space-y-0.5 text-[9px] text-zinc-400">
+                          <div>Atas Nama: <strong className="text-zinc-200">SUKRI LANRA</strong></div>
+                          <div className="text-[8px] text-zinc-500">* Transfer manual nominal pas agar mudah divalidasi.</div>
                         </div>
                       </div>
                     )}

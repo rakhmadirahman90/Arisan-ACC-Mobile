@@ -136,6 +136,7 @@ export default function App() {
 
   // Add Member
   const handleAddMember = (m: Omit<Member, "id" | "joinDate" | "wonRound">) => {
+    if (!isAdmin) return;
     const newId = `mem-${Date.now()}`;
     const newMember: Member = {
       ...m,
@@ -161,6 +162,7 @@ export default function App() {
 
   // Delete Member
   const handleDeleteMember = (id: string) => {
+    if (!isAdmin) return;
     if (confirm("Keluarkan unit claser ini dari keanggotaan arisan?")) {
       setMembers(members.filter((m) => m.id !== id));
       setPayments(payments.filter((p) => p.memberId !== id));
@@ -169,6 +171,7 @@ export default function App() {
 
   // Toggle Payment for a specific member in the current round
   const handleTogglePayment = (memberId: string) => {
+    if (!isAdmin) return;
     const round = config.currentRound;
     const existingIndex = payments.findIndex(
       (p) => p.memberId === memberId && p.round === round
@@ -199,6 +202,7 @@ export default function App() {
 
   // Admin Instant Payout Utility (Lunas semua)
   const handleInstantPayAll = () => {
+    if (!isAdmin) return;
     const round = config.currentRound;
     const updatedPayments = [...payments];
 
@@ -535,6 +539,7 @@ export default function App() {
                   onNavigateToKocokan={() => setActiveTab("kocok")}
                   onTogglePayment={handleTogglePayment}
                   activeLivery={activeLivery}
+                  isAdmin={isAdmin}
                 />
               )}
 

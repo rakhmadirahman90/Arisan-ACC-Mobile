@@ -33,6 +33,93 @@ if (apiKey) {
   console.warn("System: GEMINI_API_KEY is not defined. Falling back to structured templates.");
 }
 
+// Initialize Midtrans Snap
+import midtransClient from "midtrans-client";
+let snap: midtransClient.Snap | null = null;
+if (process.env.MIDTRANS_SERVER_KEY) {
+  try {
+    snap = new midtransClient.Snap({
+      isProduction: false,
+      serverKey: process.env.MIDTRANS_SERVER_KEY,
+      clientKey: process.env.MIDTRANS_CLIENT_KEY,
+    });
+    console.log("System: Midtrans Snap successfully initialized.");
+  } catch (err) {
+    console.error("System: Error initializing Midtrans client:", err);
+  }
+} else {
+  console.warn("System: MIDTRANS_SERVER_KEY is not defined. Payments will fallback to local simulation.");
+}
+
+// POST API route for Midtrans Payment Generation
+app.post("/api/checkout", async (req, res) => {
+  const { memberId, memberName, round, amount, phone } = req.body;
+
+  // Generate a unique order ID for this transaction attempt
+  const orderId = `KOPDAR-R${round}-${memberId}-${Date.now()}`;
+
+  if (snap) {
+    try {
+      const parameter = {
+        transaction_details: {
+          order_id: orderId,
+          gross_amount: amount,
+        },
+        item_details: [
+          {
+            id: `R${round}`,
+            price: amount,
+            quantity: 1,
+            name: `Iuran Arisan Kopdar Putaran ${round}`,
+            merchant_name: "Auto Claser Club",
+          }
+        ],
+        customer_details: {
+          first_name: memberName,
+          phone: phone,
+        },
+        enabled_payments: ["gopay", "shopeepay", "other_qris", "mandiri_clickpay", "echannel", "permata_va", "bca_va", "bni_va", "bri_va"],
+      };
+
+      const transaction = await snap.createTransaction(parameter);
+      return res.json({ 
+        success: true, 
+        token: transaction.token, 
+        orderId 
+      });
+    } catch (apiError: any) {
+      console.error("Midtrans API invocation error:", apiError);
+      return res.status(500).json({ success: false, error: apiError.message });
+    }
+  }
+
+  // Fallback to simulation if no keys
+  return res.json({
+    success: true,
+    simulated: true,
+    orderId,
+  });
+});
+
+// GET API route to check Midtrans transaction status via backend
+app.get("/api/checkout/status/:orderId", async (req, res) => {
+  const { orderId } = req.params;
+  
+  if (snap) {
+    try {
+      const statusResponse = await snap.transaction.status(orderId);
+      return res.json({ success: true, status: statusResponse.transaction_status });
+    } catch (apiError: any) {
+      // Midtrans throws 404 if transaction is not found (e.g. user hasn't selected payment option yet)
+      // This is normal, so we just return pending.
+      return res.json({ success: true, status: "pending", pendingDetails: apiError.message });
+    }
+  }
+
+  // Fallback to simulation
+  return res.json({ success: true, simulated: true, status: "pending" });
+});
+
 // Default Advisor tips for fallback
 const FALLBACK_TIPS = [
   "💡 **Investasikan untuk Perawatan Kendaraan**: Gunakan Rp 500.000,- untuk melakukan penggantian oli mesin berkualitas tinggi (seperti Shell Helix Ultra atau Motul) agar performa mobil/motor Anda tetap handal saat agenda kopdar berikutnya.",
