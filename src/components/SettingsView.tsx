@@ -242,7 +242,7 @@ export default function SettingsView({
         {isAdmin ? (
           <div className="space-y-2">
             <div className="text-[10px] text-zinc-300 leading-normal">
-              Anda berselancar sebagai <strong className={`${activeLivery.textAccent}`}>Marshall Utama</strong>. Tombol simpan amandemen, pengaturan jadwal piala, & reset silsilah terbuka secara penuh.
+              Anda berselancar sebagai <strong className={`${activeLivery.textAccent}`}>Marshall Utama</strong>. Tombol simpan amandemen, pengaturan jadwal piala, & reset data arisan terbuka secara penuh.
             </div>
             <button
               onClick={() => onSetAdmin(false)}

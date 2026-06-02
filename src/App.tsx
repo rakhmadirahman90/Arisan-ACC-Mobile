@@ -637,7 +637,7 @@ export default function App() {
               >
                 <div className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${activeTab === "riwayat" ? `${activeLivery.dotBg} scale-100` : "bg-transparent scale-0"}`}></div>
                 <Trophy className="w-[18px] h-[18px]" />
-                <span className="text-[9px] font-mono font-bold tracking-tight uppercase">Silsilah</span>
+                <span className="text-[9px] font-mono font-bold tracking-tight uppercase">Data Arisan</span>
               </button>
 
               <button

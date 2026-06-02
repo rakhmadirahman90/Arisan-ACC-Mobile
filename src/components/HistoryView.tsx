@@ -273,7 +273,7 @@ export default function HistoryView({
             }`}
           >
             <Trophy className="w-3.5 h-3.5 shrink-0" />
-            SILSILAH
+            DATA ARISAN
           </button>
           
           <button
@@ -347,7 +347,7 @@ export default function HistoryView({
               <div className="space-y-3">
                 <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono flex items-center gap-2 px-1">
                   <History className="w-4 h-4 text-zinc-500" />
-                  Silsilah Pemenang Arisan
+                  Data Arisan Pemenang
                 </h3>
 
                 <div className="space-y-3 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/5">
