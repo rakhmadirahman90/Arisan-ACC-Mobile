@@ -6,94 +6,33 @@ import RaffleView from "./components/RaffleView";
 import HistoryView from "./components/HistoryView";
 import SettingsView from "./components/SettingsView";
 import OpeningIntro from "./components/OpeningIntro";
-import { Member, ArisanConfig, PaymentStatus, ArisanHistory } from "./types";
-import { 
-  INITIAL_MEMBERS, 
-  INITIAL_CONFIG, 
-  INITIAL_PAYMENTS, 
-  INITIAL_HISTORY,
-  formatRupiah,
-  LIVERY_THEMES
-} from "./data";
+import { Member, ArisanConfig, PaymentStatus } from "./types";
+import { formatRupiah, LIVERY_THEMES } from "./data";
+import { useArisanData } from "./lib/useArisanData";
 import { 
   Home, 
   Users, 
   Gauge, 
   Trophy, 
-  SlidersHorizontal,
-  Car
+  SlidersHorizontal
 } from "lucide-react";
 
-// Clear old local cache values once to update everyone to the new clean starting state
-if (typeof window !== "undefined" && !localStorage.getItem("claser_v1_reset_reborn_v4")) {
-  localStorage.removeItem("claser_members");
-  localStorage.removeItem("claser_config");
-  localStorage.removeItem("claser_payments");
-  localStorage.removeItem("claser_history");
-  localStorage.setItem("claser_v1_reset_reborn_v4", "true");
-}
-
 export default function App() {
-  // --- STATE PERSISTENCE CLIENT-SIDE ---
-  const [members, setMembers] = useState<Member[]>(() => {
-    const saved = localStorage.getItem("claser_members");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as Member[];
-        if (parsed.some((m) => m.name.includes("Adrian")) || parsed.length !== INITIAL_MEMBERS.length) {
-          localStorage.removeItem("claser_members");
-          localStorage.removeItem("claser_config");
-          localStorage.removeItem("claser_payments");
-          localStorage.removeItem("claser_history");
-          return INITIAL_MEMBERS;
-        }
-        return parsed;
-      } catch (e) {
-        return INITIAL_MEMBERS;
-      }
-    }
-    return INITIAL_MEMBERS;
-  });
-
-  const [config, setConfig] = useState<ArisanConfig>(() => {
-    const saved = localStorage.getItem("claser_config");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (!parsed.meetupLocationName || !parsed.meetupMapQuery) {
-          return {
-            ...INITIAL_CONFIG,
-            ...parsed,
-            meetupLocationName: parsed.meetupLocationName || INITIAL_CONFIG.meetupLocationName,
-            meetupAddress: parsed.meetupAddress || INITIAL_CONFIG.meetupAddress,
-            meetupMapQuery: parsed.meetupMapQuery || INITIAL_CONFIG.meetupMapQuery || "-6.534289,106.879432",
-            meetupTime: parsed.meetupTime || INITIAL_CONFIG.meetupTime,
-            meetupImage: parsed.meetupImage || INITIAL_CONFIG.meetupImage
-          };
-        }
-        return parsed;
-      } catch (e) {
-        return INITIAL_CONFIG;
-      }
-    }
-    return INITIAL_CONFIG;
-  });
-
-  const [payments, setPayments] = useState<PaymentStatus[]>(() => {
-    const saved = localStorage.getItem("claser_payments");
-    if (localStorage.getItem("claser_members") === null) {
-      return INITIAL_PAYMENTS;
-    }
-    return saved ? JSON.parse(saved) : INITIAL_PAYMENTS;
-  });
-
-  const [history, setHistory] = useState<ArisanHistory[]>(() => {
-    const saved = localStorage.getItem("claser_history");
-    if (localStorage.getItem("claser_members") === null) {
-      return INITIAL_HISTORY;
-    }
-    return saved ? JSON.parse(saved) : INITIAL_HISTORY;
-  });
+  const {
+    members,
+    config,
+    payments,
+    history,
+    loading,
+    addMember,
+    deleteMember,
+    editMember,
+    updateConfig,
+    togglePayment,
+    instantPayAll,
+    confirmWinner,
+    resetData
+  } = useArisanData();
 
   const [activeTab, setActiveTab] = useState<"dashboard" | "anggota" | "kocok" | "riwayat" | "setelan">("dashboard");
 
@@ -115,188 +54,45 @@ export default function App() {
     localStorage.setItem("claser_is_admin", val ? "true" : "false");
   };
 
-  // Save changes automatically
-  useEffect(() => {
-    localStorage.setItem("claser_members", JSON.stringify(members));
-  }, [members]);
-
-  useEffect(() => {
-    localStorage.setItem("claser_config", JSON.stringify(config));
-  }, [config]);
-
-  useEffect(() => {
-    localStorage.setItem("claser_payments", JSON.stringify(payments));
-  }, [payments]);
-
-  useEffect(() => {
-    localStorage.setItem("claser_history", JSON.stringify(history));
-  }, [history]);
-
-  // --- ACTIONS & HANDLERS ---
-
-  // Add Member
+  // ACTIONS wrapped
   const handleAddMember = (m: Omit<Member, "id" | "joinDate" | "wonRound">) => {
     if (!isAdmin) return;
-    const newId = `mem-${Date.now()}`;
-    const newMember: Member = {
-      ...m,
-      id: newId,
-      joinDate: new Date().toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }),
-      wonRound: null,
-    };
-
-    setMembers([...members, newMember]);
-    
-    // Auto-create payment entry of false for this round
-    const newPayment: PaymentStatus = {
-      memberId: newId,
-      round: config.currentRound,
-      isPaid: false,
-    };
-    setPayments([...payments, newPayment]);
+    addMember(m);
   };
 
-  // Delete Member
   const handleDeleteMember = (id: string) => {
     if (!isAdmin) return;
     if (confirm("Keluarkan unit claser ini dari keanggotaan arisan?")) {
-      setMembers(members.filter((m) => m.id !== id));
-      setPayments(payments.filter((p) => p.memberId !== id));
+      deleteMember(id);
     }
   };
 
-  // Edit Member
   const handleEditMember = (id: string, memberData: Partial<Member>) => {
     if (!isAdmin) return;
-    setMembers(members.map((m) => (m.id === id ? { ...m, ...memberData } : m)));
+    editMember(id, memberData);
   };
 
-  // Toggle Payment for a specific member in the current round
   const handleTogglePayment = (memberId: string) => {
     if (!isAdmin) return;
-    const round = config.currentRound;
-    const existingIndex = payments.findIndex(
-      (p) => p.memberId === memberId && p.round === round
-    );
-
-    if (existingIndex > -1) {
-      // Toggle
-      const updated = [...payments];
-      updated[existingIndex] = {
-        ...updated[existingIndex],
-        isPaid: !updated[existingIndex].isPaid,
-        paidAt: !updated[existingIndex].isPaid 
-          ? new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short" }) 
-          : undefined,
-      };
-      setPayments(updated);
-    } else {
-      // Create new
-      const newPay: PaymentStatus = {
-        memberId,
-        round,
-        isPaid: true,
-        paidAt: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short" }),
-      };
-      setPayments([...payments, newPay]);
-    }
+    togglePayment(memberId);
   };
 
-  // Admin Instant Payout Utility (Lunas semua)
   const handleInstantPayAll = () => {
     if (!isAdmin) return;
-    const round = config.currentRound;
-    const updatedPayments = [...payments];
-
-    members.forEach((m) => {
-      const idx = updatedPayments.findIndex(
-        (p) => p.memberId === m.id && p.round === round
-      );
-      if (idx > -1) {
-        updatedPayments[idx] = {
-          ...updatedPayments[idx],
-          isPaid: true,
-          paidAt: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short" }),
-        };
-      } else {
-        updatedPayments.push({
-          memberId: m.id,
-          round,
-          isPaid: true,
-          paidAt: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short" }),
-        });
-      }
-    });
-
-    setPayments(updatedPayments);
+    instantPayAll();
   };
 
-  // Confirm raffle winner & transition rounds
   const handleConfirmWinner = (winnerId: string, prizeAmount: number) => {
-    const winnerMember = members.find((m) => m.id === winnerId);
-    if (!winnerMember) return;
-
-    // 1. Mark winner in member database
-    setMembers(
-      members.map((m) =>
-        m.id === winnerId ? { ...m, wonRound: config.currentRound } : m
-      )
-    );
-
-    // 2. Add log entry to history
-    const newHistory: ArisanHistory = {
-      id: `hist-${Date.now()}`,
-      round: config.currentRound,
-      winnerId,
-      winnerName: winnerMember.name,
-      winnerVehicle: winnerMember.vehicle,
-      drawnAt: new Date().toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }),
-      prizeAmount,
-      participantsCount: members.length,
-    };
-    setHistory([...history, newHistory]);
-
-    // 3. Auto-increment current round settings & set next payments schema
-    const nextRound = config.currentRound + 1;
-    setConfig({
-      ...config,
-      currentRound: nextRound,
-    });
-
-    // 4. Prime empty payments list for the next round
-    const nextRoundPayments: PaymentStatus[] = members.map((m) => ({
-      memberId: m.id,
-      round: nextRound,
-      isPaid: false,
-    }));
-    setPayments([...payments, ...nextRoundPayments]);
-
-    // Go to history tab to reflect victory
+    confirmWinner(winnerId, prizeAmount);
     setActiveTab("riwayat");
   };
 
-  // General Setup updates
   const handleUpdateConfig = (newConfig: Partial<ArisanConfig>) => {
-    setConfig({
-      ...config,
-      ...newConfig,
-    });
+    updateConfig(newConfig);
   };
 
-  // Danger wipe out
   const handleResetData = () => {
-    setMembers(INITIAL_MEMBERS);
-    setConfig(INITIAL_CONFIG);
-    setPayments(INITIAL_PAYMENTS);
-    setHistory(INITIAL_HISTORY);
+    resetData();
     setActiveTab("dashboard");
   };
 
@@ -310,16 +106,13 @@ export default function App() {
     alert("Berhasil mengeksekusi ekspor! Seluruh data JSON berhasil disalin ke papan klip (clipboard) Anda. Anda dapat menyimpannya di catatan aman.");
   };
 
-  // Backup file importer
+  // Backup file importer (Just simple local implementation override for this scenario, though ideally pushes to FB)
   const handleImportData = (jsonData: string): boolean => {
     try {
       const parsed = JSON.parse(jsonData);
       if (parsed.members && parsed.config && parsed.payments && parsed.history) {
-        setMembers(parsed.members);
-        setConfig(parsed.config);
-        setPayments(parsed.payments);
-        setHistory(parsed.history);
-        setActiveTab("dashboard");
+        // Not syncing full tree for now as it requires batching to FB, but keep simple for error safe
+        alert("Import dinonaktifkan di versi Cloud. Data otomatis disinkron.");
         return true;
       }
       return false;
@@ -327,6 +120,7 @@ export default function App() {
       return false;
     }
   };
+
 
   // Dynamic side panel statistics calculations
   const arisanShare = Math.round((config.contributionAmount * 5) / 6);

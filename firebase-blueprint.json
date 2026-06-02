@@ -1,0 +1,84 @@
+{
+  "entities": {
+    "Member": {
+      "title": "Member",
+      "description": "Represents a member of the Arisan.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "vehicle": { "type": "string" },
+        "phone": { "type": "string" },
+        "joinDate": { "type": "string" },
+        "wonRound": { "type": "number", "nullable": true },
+        "avatarColor": { "type": "string" }
+      },
+      "required": ["id", "name", "vehicle", "phone", "joinDate", "avatarColor"]
+    },
+    "ArisanConfig": {
+      "title": "ArisanConfig",
+      "description": "Configuration object.",
+      "type": "object",
+      "properties": {
+        "contributionAmount": { "type": "number" },
+        "currentRound": { "type": "number" },
+        "totalRounds": { "type": "number" },
+        "nextDrawDate": { "type": "string" },
+        "livery": { "type": "string" },
+        "raffleActiveTime": { "type": "string" },
+        "meetupLocationName": { "type": "string" },
+        "meetupAddress": { "type": "string" },
+        "meetupMapQuery": { "type": "string" },
+        "meetupTime": { "type": "string" },
+        "meetupImage": { "type": "string" }
+      },
+      "required": ["contributionAmount", "currentRound", "totalRounds"]
+    },
+    "ArisanHistory": {
+      "title": "ArisanHistory",
+      "description": "Historical records of raffles.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "round": { "type": "number" },
+        "winnerId": { "type": "string" },
+        "winnerName": { "type": "string" },
+        "winnerVehicle": { "type": "string" },
+        "drawnAt": { "type": "string" },
+        "prizeAmount": { "type": "number" },
+        "participantsCount": { "type": "number" }
+      },
+      "required": ["id", "round", "winnerId", "winnerName", "winnerVehicle", "drawnAt", "prizeAmount", "participantsCount"]
+    },
+    "PaymentStatus": {
+      "title": "PaymentStatus",
+      "description": "Payment records per member per round.",
+      "type": "object",
+      "properties": {
+        "memberId": { "type": "string" },
+        "round": { "type": "number" },
+        "isPaid": { "type": "boolean" },
+        "paidAt": { "type": "string" }
+      },
+      "required": ["memberId", "round", "isPaid"]
+    }
+  },
+  "firestore": {
+    "members/{memberId}": {
+      "schema": { "$ref": "#/entities/Member" },
+      "description": "Stores user members"
+    },
+    "config/{configId}": {
+      "schema": { "$ref": "#/entities/ArisanConfig" },
+      "description": "Stores app configuration singleton"
+    },
+    "history/{historyId}": {
+      "schema": { "$ref": "#/entities/ArisanHistory" },
+      "description": "Stores past raffle history"
+    },
+    "payments/{paymentId}": {
+      "schema": { "$ref": "#/entities/PaymentStatus" },
+      "description": "Stores payments statuses"
+    }
+  }
+}
