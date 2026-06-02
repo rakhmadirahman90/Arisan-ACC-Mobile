@@ -24,13 +24,13 @@ import {
   Car
 } from "lucide-react";
 
-// Clear old local cache values once to update everyone to the new clean Round 1 starting state
-if (typeof window !== "undefined" && !localStorage.getItem("claser_v1_reset_reborn_v3")) {
+// Clear old local cache values once to update everyone to the new clean starting state
+if (typeof window !== "undefined" && !localStorage.getItem("claser_v1_reset_reborn_v4")) {
   localStorage.removeItem("claser_members");
   localStorage.removeItem("claser_config");
   localStorage.removeItem("claser_payments");
   localStorage.removeItem("claser_history");
-  localStorage.setItem("claser_v1_reset_reborn_v3", "true");
+  localStorage.setItem("claser_v1_reset_reborn_v4", "true");
 }
 
 export default function App() {
@@ -287,24 +287,10 @@ export default function App() {
 
   // Danger wipe out
   const handleResetData = () => {
-    const resetMembers = INITIAL_MEMBERS.map((m) => ({
-      ...m,
-      wonRound: null,
-    }));
-    const resetConfig = {
-      ...INITIAL_CONFIG,
-      currentRound: 1,
-    };
-    const resetPayments = INITIAL_MEMBERS.map((m) => ({
-      memberId: m.id,
-      round: 1,
-      isPaid: false,
-    }));
-
-    setMembers(resetMembers);
-    setConfig(resetConfig);
-    setPayments(resetPayments);
-    setHistory([]);
+    setMembers(INITIAL_MEMBERS);
+    setConfig(INITIAL_CONFIG);
+    setPayments(INITIAL_PAYMENTS);
+    setHistory(INITIAL_HISTORY);
     setActiveTab("dashboard");
   };
 
