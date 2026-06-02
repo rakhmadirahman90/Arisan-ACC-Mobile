@@ -25,12 +25,12 @@ import {
 } from "lucide-react";
 
 // Clear old local cache values once to update everyone to the new clean Round 1 starting state
-if (typeof window !== "undefined" && !localStorage.getItem("claser_v1_reset_reborn_v2")) {
+if (typeof window !== "undefined" && !localStorage.getItem("claser_v1_reset_reborn_v3")) {
   localStorage.removeItem("claser_members");
   localStorage.removeItem("claser_config");
   localStorage.removeItem("claser_payments");
   localStorage.removeItem("claser_history");
-  localStorage.setItem("claser_v1_reset_reborn_v2", "true");
+  localStorage.setItem("claser_v1_reset_reborn_v3", "true");
 }
 
 export default function App() {

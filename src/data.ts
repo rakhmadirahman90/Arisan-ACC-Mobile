@@ -25,7 +25,7 @@ export const INITIAL_MEMBERS: Member[] = [
     vehicle: "Mitsubishi Pajero Sport Dakar (Titanium Grey)",
     phone: "628131234003",
     joinDate: "12 Jan 2026",
-    wonRound: null,
+    wonRound: 2,
     avatarColor: "bg-emerald-500",
   },
   {
@@ -43,7 +43,7 @@ export const INITIAL_MEMBERS: Member[] = [
     vehicle: "Hyundai IONIQ 5 Prime (Gravity Gold)",
     phone: "628191234005",
     joinDate: "18 Jan 2026",
-    wonRound: null,
+    wonRound: 5,
     avatarColor: "bg-amber-500",
   },
   {
@@ -124,7 +124,7 @@ export const INITIAL_MEMBERS: Member[] = [
     vehicle: "Wuling Almaz RS Pro (Pristine White)",
     phone: "628524444014",
     joinDate: "08 Feb 2026",
-    wonRound: null,
+    wonRound: 3,
     avatarColor: "bg-pink-500",
   },
   {
@@ -133,7 +133,7 @@ export const INITIAL_MEMBERS: Member[] = [
     vehicle: "Toyota Hilux Double Cabin (Attitude Black)",
     phone: "628785555015",
     joinDate: "10 Feb 2026",
-    wonRound: null,
+    wonRound: 1,
     avatarColor: "bg-sky-500",
   },
   {
@@ -196,7 +196,7 @@ export const INITIAL_MEMBERS: Member[] = [
     vehicle: "Vespa GTS Super Sport 150 (Yellow Sole)",
     phone: "628131313022",
     joinDate: "24 Feb 2026",
-    wonRound: null,
+    wonRound: 4,
     avatarColor: "bg-amber-600",
   },
   {
@@ -239,7 +239,7 @@ export const INITIAL_MEMBERS: Member[] = [
 
 export const INITIAL_CONFIG: ArisanConfig = {
   contributionAmount: 60000, // Rp 60.000,- (50k arisan, 10k konsumsi)
-  currentRound: 1, // Round 1
+  currentRound: 6, // Round 6
   totalRounds: 26, // match total members
   nextDrawDate: "2026-06-15",
   livery: "blue",
@@ -252,36 +252,76 @@ export const INITIAL_CONFIG: ArisanConfig = {
   meetupImage: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=600&auto=format&fit=crop",
 };
 
-export const INITIAL_HISTORY: ArisanHistory[] = [];
+export const INITIAL_HISTORY: ArisanHistory[] = [
+  {
+    id: "hist-1",
+    round: 1,
+    winnerId: "mem-15",
+    winnerName: "Om Mahmud",
+    winnerVehicle: "Toyota Hilux Double Cabin (Attitude Black)",
+    drawnAt: new Date(Date.now() - 5 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    prizeAmount: 1300000,
+    participantsCount: 26,
+  },
+  {
+    id: "hist-2",
+    round: 2,
+    winnerId: "mem-3",
+    winnerName: "Om Andi Hasbial",
+    winnerVehicle: "Mitsubishi Pajero Sport Dakar (Titanium Grey)",
+    drawnAt: new Date(Date.now() - 4 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    prizeAmount: 1300000,
+    participantsCount: 26,
+  },
+  {
+    id: "hist-3",
+    round: 3,
+    winnerId: "mem-14",
+    winnerName: "Om Burhanudin",
+    winnerVehicle: "Wuling Almaz RS Pro (Pristine White)",
+    drawnAt: new Date(Date.now() - 3 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    prizeAmount: 1300000,
+    participantsCount: 26,
+  },
+  {
+    id: "hist-4",
+    round: 4,
+    winnerId: "mem-22",
+    winnerName: "Om Zulkarnain",
+    winnerVehicle: "Vespa GTS Super Sport 150 (Yellow Sole)",
+    drawnAt: new Date(Date.now() - 2 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    prizeAmount: 1300000,
+    participantsCount: 26,
+  },
+  {
+    id: "hist-5",
+    round: 5,
+    winnerId: "mem-5",
+    winnerName: "Om Haruna",
+    winnerVehicle: "Hyundai IONIQ 5 Prime (Gravity Gold)",
+    drawnAt: new Date(Date.now() - 1 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    prizeAmount: 1300000,
+    participantsCount: 26,
+  }
+];
 
-// Seeded payments for Round 1 (all members unpaid initially)
+// Seeded payments for Rounds 1-5 (all paid) and Round 6 (unpaid)
 export const INITIAL_PAYMENTS: PaymentStatus[] = [
-  { memberId: "mem-1", round: 1, isPaid: false },
-  { memberId: "mem-2", round: 1, isPaid: false },
-  { memberId: "mem-3", round: 1, isPaid: false },
-  { memberId: "mem-4", round: 1, isPaid: false },
-  { memberId: "mem-5", round: 1, isPaid: false },
-  { memberId: "mem-6", round: 1, isPaid: false },
-  { memberId: "mem-7", round: 1, isPaid: false },
-  { memberId: "mem-8", round: 1, isPaid: false },
-  { memberId: "mem-9", round: 1, isPaid: false },
-  { memberId: "mem-10", round: 1, isPaid: false },
-  { memberId: "mem-11", round: 1, isPaid: false },
-  { memberId: "mem-12", round: 1, isPaid: false },
-  { memberId: "mem-13", round: 1, isPaid: false },
-  { memberId: "mem-14", round: 1, isPaid: false },
-  { memberId: "mem-15", round: 1, isPaid: false },
-  { memberId: "mem-16", round: 1, isPaid: false },
-  { memberId: "mem-17", round: 1, isPaid: false },
-  { memberId: "mem-18", round: 1, isPaid: false },
-  { memberId: "mem-19", round: 1, isPaid: false },
-  { memberId: "mem-20", round: 1, isPaid: false },
-  { memberId: "mem-21", round: 1, isPaid: false },
-  { memberId: "mem-22", round: 1, isPaid: false },
-  { memberId: "mem-23", round: 1, isPaid: false },
-  { memberId: "mem-24", round: 1, isPaid: false },
-  { memberId: "mem-25", round: 1, isPaid: false },
-  { memberId: "mem-26", round: 1, isPaid: false },
+  // Round 1 to 5 - Everyone paid
+  ...Array.from({ length: 5 }).flatMap((_, roundIndex) => 
+    INITIAL_MEMBERS.map(m => ({
+      memberId: m.id,
+      round: roundIndex + 1,
+      isPaid: true,
+      paidAt: new Date(Date.now() - (5 - roundIndex) * 30 * 24 * 60 * 60 * 1000 - 86400000).toISOString(),
+    }))
+  ),
+  // Round 6 - No one paid yet
+  ...INITIAL_MEMBERS.map(m => ({
+    memberId: m.id,
+    round: 6,
+    isPaid: false,
+  }))
 ];
 
 export function formatRupiah(value: number): string {
