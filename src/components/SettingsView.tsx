@@ -786,28 +786,32 @@ export default function SettingsView({
       </div>
 
       {/* Wipe/Reset Block */}
-      {isAdmin && (
-        <div className="bg-red-500/5 border border-red-550/15 rounded-2xl p-4 space-y-3.5 text-center font-sans">
-          <h3 className="text-xs font-black uppercase font-mono text-rose-500 flex items-center justify-center gap-1.5">
-            <RotateCcw className="w-4 h-4 text-red-500" /> WIPE OUT PADDOCK DANGER ZONE
-          </h3>
-          
-          <p className="text-[10.5px] text-zinc-405 leading-relaxed">
-            Mengosongkan sejarah pemenang, mereset setoran putaran ini, dan memulai ulang siklus arisan dari musim pertama/baru.
-          </p>
+      <div className="bg-red-500/5 border border-red-550/15 rounded-2xl p-4 space-y-3.5 text-center font-sans">
+        <h3 className="text-xs font-black uppercase font-mono text-rose-500 flex items-center justify-center gap-1.5">
+          <RotateCcw className="w-4 h-4 text-red-500" /> WIPE OUT PADDOCK DANGER ZONE
+        </h3>
+        
+        <p className="text-[10.5px] text-zinc-405 leading-relaxed">
+          Mengosongkan sejarah pemenang, mereset setoran putaran ini, dan memulai ulang siklus arisan dari musim pertama/baru.
+        </p>
 
-          <button
-            onClick={() => {
-              if (confirm("Apakah Anda yakin ingin menghapus semua data arisan Auto Claser dan mereset ke pengaturan awal? Tindakan ini tidak dapat dibatalkan.")) {
-                onResetData();
-              }
-            }}
-            className="bg-red-500/10 hover:bg-red-500/20 text-[#f87171] hover:text-red-300 border border-red-500/20 py-2 px-4 rounded-xl text-xs font-bold font-mono transition active:scale-95 cursor-pointer inline-flex items-center gap-1.5"
-          >
-            RESET ULANG SEMUA DATA ⚠️
-          </button>
-        </div>
-      )}
+        <button
+          onClick={() => {
+            if (!isAdmin) {
+              alert("Hanya Admin yang dapat melakukan Reset Ulang Semua Data. Silakan login dari menu Akses Marshall di bawah.");
+              return;
+            }
+            if (confirm("Apakah Anda yakin ingin menghapus semua data arisan Auto Claser dan mereset ke pengaturan awal? Tindakan ini tidak dapat dibatalkan.")) {
+              onResetData();
+            }
+          }}
+          className={`py-2 px-4 rounded-xl text-xs font-bold font-mono transition inline-flex items-center gap-1.5 ${
+            isAdmin ? "bg-red-500/10 hover:bg-red-500/20 text-[#f87171] hover:text-red-300 border border-red-500/20 active:scale-95 cursor-pointer" : "bg-red-500/5 text-red-400/30 border border-red-500/10 cursor-not-allowed"
+          }`}
+        >
+          RESET ULANG SEMUA DATA ⚠️
+        </button>
+      </div>
 
       {/* Rules Board Info */}
       <div className="bg-white/5 border border-white/10 rounded-2xl p-4 font-sans text-xs text-zinc-400 space-y-3">
