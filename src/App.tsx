@@ -485,7 +485,7 @@ export default function App() {
                           handleSetAdmin(true);
                           (e.target as HTMLInputElement).value = "";
                         } else {
-                          alert("Sandi Admin Salah! Bantuan: 'admin123'");
+                          alert("Sandi Admin Salah!");
                         }
                       }
                     }}
@@ -500,7 +500,7 @@ export default function App() {
                           handleSetAdmin(true);
                           input.value = "";
                         } else {
-                          alert("Sandi Admin Salah! Bantuan: 'admin123'");
+                          alert("Sandi Admin Salah!");
                         }
                       }
                     }}
@@ -509,7 +509,6 @@ export default function App() {
                     GO
                   </button>
                 </div>
-                <p className="text-[8.5px] text-zinc-500 italic font-mono text-center">Petunjuk: admin123</p>
               </div>
             )}
           </div>
@@ -615,7 +614,7 @@ export default function App() {
               >
                 <div className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${activeTab === "anggota" ? `${activeLivery.dotBg} scale-100` : "bg-transparent scale-0"}`}></div>
                 <Users className="w-[18px] h-[18px]" />
-                <span className="text-[9px] font-mono font-bold tracking-tight uppercase">Roster</span>
+                <span className="text-[9px] font-mono font-bold tracking-tight uppercase">Anggota</span>
               </button>
 
               <button

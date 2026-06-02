@@ -495,7 +495,7 @@ export default function HistoryView({
               <div className="space-y-2">
                 <div className="flex justify-between items-center px-1">
                   <h3 className="text-[9.5px] font-black uppercase tracking-wider text-zinc-400 font-mono flex items-center gap-1.5">
-                    🔎 Transparansi Roster Pembayaran
+                    🔎 Transparansi Anggota Pembayaran
                   </h3>
                   <span className="text-[8px] font-mono text-zinc-500">Kocokan R{activeConfig.currentRound}</span>
                 </div>

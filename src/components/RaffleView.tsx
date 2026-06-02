@@ -261,7 +261,7 @@ export default function RaffleView({
                         onSetAdmin(true);
                         setLocalPass("");
                       } else {
-                        alert("Sandi Marshall Salah! Bantuan: admin123");
+                        alert("Sandi Marshall Salah!");
                       }
                     }
                   }}
@@ -273,7 +273,7 @@ export default function RaffleView({
                       onSetAdmin(true);
                       setLocalPass("");
                     } else {
-                      alert("Sandi Marshall Salah! Bantuan: admin123");
+                      alert("Sandi Marshall Salah!");
                     }
                   }}
                   className="bg-red-600/10 hover:bg-red-650 text-red-400 border border-red-500/20 px-3 py-1 rounded-lg text-[9px] font-mono font-bold transition cursor-pointer shrink-0"
@@ -281,7 +281,6 @@ export default function RaffleView({
                   MASUK
                 </button>
               </div>
-              <p className="text-[8px] text-zinc-500 font-mono italic">Sandi default: admin123</p>
             </div>
           </div>
         ) : raffleState === "idle" && (

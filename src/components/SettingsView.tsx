@@ -268,7 +268,7 @@ export default function SettingsView({
                       onSetAdmin(true);
                       setAdminPasswordInput("");
                     } else {
-                      alert("Sandi Salah! Sandi pengetesan: admin123");
+                      alert("Sandi Salah!");
                     }
                   }
                 }}
@@ -280,16 +280,13 @@ export default function SettingsView({
                     onSetAdmin(true);
                     setAdminPasswordInput("");
                   } else {
-                    alert("Sandi Salah! Sandi pengetesan: admin123");
+                    alert("Sandi Salah!");
                   }
                 }}
                 className={`bg-gradient-to-r ${activeLivery.btnGrad} text-white font-black font-mono text-[10px] px-3 py-1.5 rounded-xl transition cursor-pointer`}
               >
                 MASUK
               </button>
-            </div>
-            <div className="text-[8.5px] font-mono text-zinc-500 text-center italic">
-              Sandi Default: <span className="text-zinc-400 font-bold bg-white/5 px-1 py-0.5 rounded">admin123</span>
             </div>
           </div>
         )}

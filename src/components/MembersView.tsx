@@ -234,7 +234,7 @@ export default function MembersView({
       <div className="space-y-2.5">
         <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-500 font-mono flex items-center gap-2 px-1">
           <Users className="w-4 h-4 text-zinc-500" />
-          Roster Pembalap Auto Claser ({filteredMembers.length})
+          Daftar Anggota Auto Claser ({filteredMembers.length})
         </h3>
 
         <div className="space-y-2">
