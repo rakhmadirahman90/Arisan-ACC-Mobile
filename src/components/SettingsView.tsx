@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion } from "motion/react";
 import { ArisanConfig } from "../types";
 import { formatRupiah, LIVERY_THEMES } from "../data";
+import toast from "react-hot-toast";
 import { 
   Settings, 
   DollarSign, 
@@ -148,7 +149,7 @@ export default function SettingsView({
       });
     } catch (err) {
       console.error("Compression error:", err);
-      alert("Gagal mengompres gambar.");
+      toast.error("Gagal mengompres gambar.");
     } finally {
       setCompressing(false);
     }
@@ -158,7 +159,7 @@ export default function SettingsView({
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        alert("Format berkas harus berupa gambar!");
+        toast.error("Format berkas harus berupa gambar!");
         return;
       }
       await handleFile(file);
@@ -180,11 +181,11 @@ export default function SettingsView({
     const parsedRounds = parseInt(totalRoundsInput.replace(/[^0-9]/g, ""), 10);
 
     if (isNaN(parsedContrib) || parsedContrib <= 0) {
-      alert("Masukkan nominal kontribusi yang valid!");
+      toast.error("Masukkan nominal kontribusi yang valid!");
       return;
     }
     if (isNaN(parsedRounds) || parsedRounds <= 0) {
-      alert("Masukkan jumlah putaran target yang valid!");
+      toast.error("Masukkan jumlah putaran target yang valid!");
       return;
     }
 
@@ -207,7 +208,7 @@ export default function SettingsView({
   const handleImport = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAdmin) {
-      alert("Hanya Admin yang dapat mengunggah berkas cadangan.");
+      toast.error("Hanya Admin yang dapat mengunggah berkas cadangan.");
       return;
     }
     if (!importText.trim()) return;
@@ -271,8 +272,9 @@ export default function SettingsView({
                     if (adminPasswordInput === "admin123") {
                       onSetAdmin(true);
                       setAdminPasswordInput("");
+                      toast.success("Login Admin berhasil!");
                     } else {
-                      alert("Sandi Salah!");
+                      toast.error("Sandi Salah!");
                     }
                   }
                 }}
@@ -283,8 +285,9 @@ export default function SettingsView({
                   if (adminPasswordInput === "admin123") {
                     onSetAdmin(true);
                     setAdminPasswordInput("");
+                    toast.success("Login Admin berhasil!");
                   } else {
-                    alert("Sandi Salah!");
+                    toast.error("Sandi Salah!");
                   }
                 }}
                 className={`bg-gradient-to-r ${activeLivery.btnGrad} text-white font-black font-mono text-[10px] px-3 py-1.5 rounded-xl transition cursor-pointer`}
@@ -582,7 +585,7 @@ export default function SettingsView({
                   const file = e.dataTransfer.files?.[0];
                   if (file) {
                     if (!file.type.startsWith("image/")) {
-                      alert("Format berkas harus berupa gambar!");
+                      toast.error("Format berkas harus berupa gambar!");
                       return;
                     }
                     await handleFile(file);
@@ -803,7 +806,7 @@ export default function SettingsView({
         <button
           onClick={() => {
             if (!isAdmin) {
-              alert("Hanya Admin yang dapat melakukan Reset Ulang Semua Data. Silakan login dari menu Akses Admin di bawah.");
+              toast.error("Hanya Admin yang dapat melakukan Reset Ulang Semua Data. Silakan login dari menu Akses Admin di bawah.");
               return;
             }
             if (confirm("Apakah Anda yakin ingin menghapus semua data aplikasi arisan ini dan mereset ke pengaturan awal? Tindakan ini tidak dapat dibatalkan.")) {

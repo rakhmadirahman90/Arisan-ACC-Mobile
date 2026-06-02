@@ -9,6 +9,7 @@ import OpeningIntro from "./components/OpeningIntro";
 import { Member, ArisanConfig, PaymentStatus } from "./types";
 import { formatRupiah, LIVERY_THEMES } from "./data";
 import { useArisanData } from "./lib/useArisanData";
+import { Toaster } from "react-hot-toast";
 import { 
   Home, 
   Users, 
@@ -16,6 +17,8 @@ import {
   Trophy, 
   SlidersHorizontal
 } from "lucide-react";
+
+import toast from "react-hot-toast";
 
 export default function App() {
   const {
@@ -103,7 +106,7 @@ export default function App() {
     
     // Create direct copyable clipboard or down-folder text popup
     navigator.clipboard.writeText(jsonString);
-    alert("Berhasil mengeksekusi ekspor! Seluruh data JSON berhasil disalin ke papan klip (clipboard) Anda. Anda dapat menyimpannya di catatan aman.");
+    toast.success("Berhasil ekspor! Data disalin ke clipboard.");
   };
 
   // Backup file importer (Just simple local implementation override for this scenario, though ideally pushes to FB)
@@ -111,12 +114,12 @@ export default function App() {
     try {
       const parsed = JSON.parse(jsonData);
       if (parsed.members && parsed.config && parsed.payments && parsed.history) {
-        // Not syncing full tree for now as it requires batching to FB, but keep simple for error safe
-        alert("Import dinonaktifkan di versi Cloud. Data otomatis disinkron.");
+        toast.error("Import dinonaktifkan di versi Cloud. Data otomatis disinkron.");
         return true;
       }
       return false;
     } catch (e) {
+      toast.error("Format data tidak valid.");
       return false;
     }
   };
@@ -164,6 +167,12 @@ export default function App() {
       className="min-h-screen w-full bg-[#020203] text-slate-200 font-sans flex items-center justify-center p-4 lg:p-8 select-none relative overflow-x-hidden"
       style={{ background: "radial-gradient(circle at 50% 50%, #0a111a 0%, #020203 100%)" }}
     >
+      <Toaster 
+        position="top-center" 
+        toastOptions={{ 
+          style: { background: '#18181b', color: '#fff', border: '1px solid #27272a', fontSize: '12px' }
+        }} 
+      />
       {showIntro && (
         <OpeningIntro
           onComplete={() => {
@@ -270,8 +279,9 @@ export default function App() {
                         if (val === "admin123") {
                           handleSetAdmin(true);
                           (e.target as HTMLInputElement).value = "";
+                          toast.success("Login Admin berhasil!");
                         } else {
-                          alert("Sandi Admin Salah!");
+                          toast.error("Sandi Admin Salah!");
                         }
                       }
                     }}
@@ -285,8 +295,9 @@ export default function App() {
                         if (val === "admin123") {
                           handleSetAdmin(true);
                           input.value = "";
+                          toast.success("Login Admin berhasil!");
                         } else {
-                          alert("Sandi Admin Salah!");
+                          toast.error("Sandi Admin Salah!");
                         }
                       }
                     }}

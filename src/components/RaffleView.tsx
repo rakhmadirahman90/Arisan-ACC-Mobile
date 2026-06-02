@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Member, ArisanConfig, PaymentStatus } from "../types";
 import { formatRupiah } from "../data";
+import toast from "react-hot-toast";
 import { 
   Play, 
   Crown, 
@@ -260,8 +261,9 @@ export default function RaffleView({
                       if (localPass === "admin123") {
                         onSetAdmin(true);
                         setLocalPass("");
+                        toast.success("Login Admin Berhasil!");
                       } else {
-                        alert("Sandi Admin Salah!");
+                        toast.error("Sandi Admin Salah!");
                       }
                     }
                   }}
@@ -272,8 +274,9 @@ export default function RaffleView({
                     if (localPass === "admin123") {
                       onSetAdmin(true);
                       setLocalPass("");
+                      toast.success("Login Admin Berhasil!");
                     } else {
-                      alert("Sandi Admin Salah!");
+                      toast.error("Sandi Admin Salah!");
                     }
                   }}
                   className="bg-red-600/10 hover:bg-red-650 text-red-400 border border-red-500/20 px-3 py-1 rounded-lg text-[9px] font-mono font-bold transition cursor-pointer shrink-0"

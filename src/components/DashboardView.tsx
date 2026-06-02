@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import toast from "react-hot-toast";
 import { Member, ArisanConfig, PaymentStatus, ArisanHistory } from "../types";
 import { formatRupiah } from "../data";
 import { 
@@ -413,7 +414,7 @@ export default function DashboardView({
                       if (isPaid) {
                         // Undo payment immediately if paid (for admin correction ease)
                         if (!isAdmin) {
-                          alert("Hanya admin yang dapat membatalkan status lunas.");
+                          toast.error("Hanya admin yang dapat membatalkan status lunas.");
                           return;
                         }
                         onTogglePayment(member.id);
@@ -595,7 +596,7 @@ export default function DashboardView({
                       <button
                         onClick={async () => {
                           if (!isAdmin) {
-                            alert("Hanya Admin yang dapat melanjutkan proses transaksi atau validasi lunas.");
+                            toast.error("Hanya Admin yang dapat melanjutkan proses transaksi atau validasi lunas.");
                             return;
                           }
                           if (selectedMethod === "cash") {
@@ -641,11 +642,11 @@ export default function DashboardView({
                                       setPaymentStatus("verified");
                                     },
                                     onPending: function() {
-                                      alert("Menunggu pembayaran! Silakan cek notifikasi aplikasi atau ATM Anda.");
+                                      toast.loading("Menunggu pembayaran! Silakan cek notifikasi aplikasi atau ATM Anda.");
                                       setActiveMemberPayment(null);
                                     },
                                     onError: function() {
-                                      alert("Pembayaran Gagal di Midtrans.");
+                                      toast.error("Pembayaran Gagal di Midtrans.");
                                       setActiveMemberPayment(null);
                                     },
                                     onClose: function() {
@@ -653,7 +654,7 @@ export default function DashboardView({
                                     }
                                   });
                                 } else {
-                                  alert("Midtrans Core Script belum dimuat oleh browser.");
+                                  toast.error("Midtrans Core Script belum dimuat oleh browser.");
                                   setCountdownSeconds(3);
                                 }
                               }

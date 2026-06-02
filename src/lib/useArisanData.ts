@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, getDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import toast from "react-hot-toast";
 import { db } from "./firebase";
 import { Member, ArisanConfig, PaymentStatus, ArisanHistory } from "../types";
 import { INITIAL_MEMBERS, INITIAL_CONFIG, INITIAL_PAYMENTS, INITIAL_HISTORY } from "../data";
@@ -67,131 +68,167 @@ export function useArisanData() {
   }, []);
 
   const addMember = async (m: Omit<Member, "id" | "joinDate" | "wonRound">) => {
-    const newId = `mem-${Date.now()}`;
-    const newMember: Member = {
-      ...m,
-      id: newId,
-      joinDate: new Date().toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }),
-      wonRound: null,
-    };
-    await setDoc(doc(db, "members", newId), newMember);
+    try {
+      const newId = `mem-${Date.now()}`;
+      const newMember: Member = {
+        ...m,
+        id: newId,
+        joinDate: new Date().toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }),
+        wonRound: null,
+      };
+      await setDoc(doc(db, "members", newId), newMember);
 
-    const newPayment: PaymentStatus = {
-      memberId: newId,
-      round: config.currentRound,
-      isPaid: false,
-    };
-    await setDoc(doc(db, "payments", `${newId}-${config.currentRound}`), newPayment);
+      const newPayment: PaymentStatus = {
+        memberId: newId,
+        round: config.currentRound,
+        isPaid: false,
+      };
+      await setDoc(doc(db, "payments", `${newId}-${config.currentRound}`), newPayment);
+      toast.success("Anggota berhasil ditambahkan!");
+    } catch (err) {
+      toast.error("Gagal menambahkan anggota");
+    }
   };
 
   const deleteMember = async (id: string) => {
-    await deleteDoc(doc(db, "members", id));
-    // Ideally we should query payments for this member and delete them, but for brevity we keep it simple or run parallel deletes
-    payments.forEach(async (p) => {
-      if (p.memberId === id) {
-        await deleteDoc(doc(db, "payments", `${id}-${p.round}`));
-      }
-    });
+    try {
+      await deleteDoc(doc(db, "members", id));
+      payments.forEach(async (p) => {
+        if (p.memberId === id) {
+          await deleteDoc(doc(db, "payments", `${id}-${p.round}`));
+        }
+      });
+      toast.success("Anggota berhasil dihapus!");
+    } catch (err) {
+      toast.error("Gagal menghapus anggota");
+    }
   };
 
   const editMember = async (id: string, memberData: Partial<Member>) => {
-    await updateDoc(doc(db, "members", id), memberData);
+    try {
+      await updateDoc(doc(db, "members", id), memberData);
+      toast.success("Data anggota berhasil diperbarui!");
+    } catch (err) {
+      toast.error("Gagal memperbarui data anggota");
+    }
   };
 
   const updateConfig = async (newConfig: Partial<ArisanConfig>) => {
-    await updateDoc(doc(db, "config", "main"), newConfig);
+    try {
+      await updateDoc(doc(db, "config", "main"), newConfig);
+      toast.success("Pengaturan berhasil disimpan!");
+    } catch (err) {
+      toast.error("Gagal menyimpan pengaturan");
+    }
   };
 
   const togglePayment = async (memberId: string) => {
-    const round = config.currentRound;
-    const existingIndex = payments.findIndex((p) => p.memberId === memberId && p.round === round);
-    if (existingIndex > -1) {
-      const p = payments[existingIndex];
-      const newPaidStatus = !p.isPaid;
-      await updateDoc(doc(db, "payments", `${memberId}-${round}`), {
-        isPaid: newPaidStatus,
-        paidAt: newPaidStatus ? new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short" }) : null
-      });
-    } else {
-      await setDoc(doc(db, "payments", `${memberId}-${round}`), {
-        memberId,
-        round,
-        isPaid: true,
-        paidAt: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short" }),
-      });
+    try {
+      const round = config.currentRound;
+      const existingIndex = payments.findIndex((p) => p.memberId === memberId && p.round === round);
+      if (existingIndex > -1) {
+        const p = payments[existingIndex];
+        const newPaidStatus = !p.isPaid;
+        await updateDoc(doc(db, "payments", `${memberId}-${round}`), {
+          isPaid: newPaidStatus,
+          paidAt: newPaidStatus ? new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short" }) : null
+        });
+        toast.success(newPaidStatus ? "Pembayaran berhasil dilunasi!" : "Pembayaran dibatalkan");
+      } else {
+        await setDoc(doc(db, "payments", `${memberId}-${round}`), {
+          memberId,
+          round,
+          isPaid: true,
+          paidAt: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short" }),
+        });
+        toast.success("Pembayaran berhasil dilunasi!");
+      }
+    } catch (err) {
+      toast.error("Gagal memperbarui status pembayaran");
     }
   };
 
   const instantPayAll = async () => {
-    const round = config.currentRound;
-    members.forEach(async (m) => {
-      const isPaid = payments.find((p) => p.memberId === m.id && p.round === round)?.isPaid;
-      if (!isPaid) {
-        await setDoc(doc(db, "payments", `${m.id}-${round}`), {
-          memberId: m.id,
-          round,
-          isPaid: true,
-          paidAt: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short" }),
-        }, { merge: true });
-      }
-    });
+    try {
+      const round = config.currentRound;
+      members.forEach(async (m) => {
+        const isPaid = payments.find((p) => p.memberId === m.id && p.round === round)?.isPaid;
+        if (!isPaid) {
+          await setDoc(doc(db, "payments", `${m.id}-${round}`), {
+            memberId: m.id,
+            round,
+            isPaid: true,
+            paidAt: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short" }),
+          }, { merge: true });
+        }
+      });
+      toast.success("Semua anggota telah dilunaskan!");
+    } catch (err) {
+      toast.error("Gagal melunasi semua pembayaran");
+    }
   };
 
   const confirmWinner = async (winnerId: string, prizeAmount: number) => {
-    const winnerMember = members.find((m) => m.id === winnerId);
-    if (!winnerMember) return;
+    try {
+      const winnerMember = members.find((m) => m.id === winnerId);
+      if (!winnerMember) return;
 
-    // mark winner
-    await updateDoc(doc(db, "members", winnerId), { wonRound: config.currentRound });
+      // mark winner
+      await updateDoc(doc(db, "members", winnerId), { wonRound: config.currentRound });
 
-    // history log
-    const histId = `hist-${Date.now()}`;
-    await setDoc(doc(db, "history", histId), {
-      id: histId,
-      round: config.currentRound,
-      winnerId,
-      winnerName: winnerMember.name,
-      winnerVehicle: winnerMember.vehicle,
-      drawnAt: new Date().toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }),
-      prizeAmount,
-      participantsCount: members.length,
-    });
-
-    // increment round
-    const nextRound = config.currentRound + 1;
-    await updateDoc(doc(db, "config", "main"), { currentRound: nextRound });
-
-    // prepopulate payments for next round
-    members.forEach(async (m) => {
-      await setDoc(doc(db, "payments", `${m.id}-${nextRound}`), {
-        memberId: m.id,
-        round: nextRound,
-        isPaid: false,
+      // history log
+      const histId = `hist-${Date.now()}`;
+      await setDoc(doc(db, "history", histId), {
+        id: histId,
+        round: config.currentRound,
+        winnerId,
+        winnerName: winnerMember.name,
+        winnerVehicle: winnerMember.vehicle,
+        drawnAt: new Date().toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }),
+        prizeAmount,
+        participantsCount: members.length,
       });
-    });
+
+      // increment round
+      const nextRound = config.currentRound + 1;
+      await updateDoc(doc(db, "config", "main"), { currentRound: nextRound });
+
+      // prepopulate payments for next round
+      members.forEach(async (m) => {
+        await setDoc(doc(db, "payments", `${m.id}-${nextRound}`), {
+          memberId: m.id,
+          round: nextRound,
+          isPaid: false,
+        });
+      });
+      toast.success(`Pemenang Putaran ${config.currentRound} berhasil disimpan!`);
+    } catch (err) {
+      toast.error("Gagal menyimpan pemenang");
+    }
   };
 
   const resetData = async () => {
-    // For simplicity, just wipe local state and re-seed doc defaults where feasible or simply overwrite db
-    // Since resetting implies deleting all docs, we'd have to list and delete.
-    // For this prototype, we'll overwrite config and leave subdocs as they'll get overwritten or ignored.
-    // But realistically we should delete all members, payments, history.
-    members.forEach(m => deleteDoc(doc(db, "members", m.id)));
-    payments.forEach(p => deleteDoc(doc(db, "payments", `${p.memberId}-${p.round}`)));
-    history.forEach(h => deleteDoc(doc(db, "history", h.id)));
-    
-    await setDoc(doc(db, "config", "main"), INITIAL_CONFIG);
-    INITIAL_MEMBERS.forEach(m => setDoc(doc(db, "members", m.id), m));
-    INITIAL_HISTORY.forEach(h => setDoc(doc(db, "history", h.id), h));
-    INITIAL_PAYMENTS.forEach(p => setDoc(doc(db, "payments", `${p.memberId}-${p.round}`), p));
+    try {
+      members.forEach(m => deleteDoc(doc(db, "members", m.id)));
+      payments.forEach(p => deleteDoc(doc(db, "payments", `${p.memberId}-${p.round}`)));
+      history.forEach(h => deleteDoc(doc(db, "history", h.id)));
+      
+      await setDoc(doc(db, "config", "main"), INITIAL_CONFIG);
+      INITIAL_MEMBERS.forEach(m => setDoc(doc(db, "members", m.id), m));
+      INITIAL_HISTORY.forEach(h => setDoc(doc(db, "history", h.id), h));
+      INITIAL_PAYMENTS.forEach(p => setDoc(doc(db, "payments", `${p.memberId}-${p.round}`), p));
+      toast.success("Semua data berhasil direset ke pengaturan awal!");
+    } catch (err) {
+      toast.error("Gagal mereset data");
+    }
   };
 
   return {
