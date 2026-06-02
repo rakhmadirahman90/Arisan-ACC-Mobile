@@ -299,9 +299,7 @@ export default function DashboardView({
           <p className="text-[9px] text-zinc-400 leading-tight">Putaran {currentRound} otomatis LUNAS didukung sensor mutasi bank otomatis.</p>
         </div>
         <button
-          disabled={!isAdmin}
           onClick={() => {
-            if (!isAdmin) return;
             // Find first unpaid member to trigger mock billing
             const firstUnpaid = members.find(m => !paidMemberIds.includes(m.id));
             if (firstUnpaid) {
@@ -314,12 +312,10 @@ export default function DashboardView({
             setCountdownSeconds(3);
             setProgressText("Sedang menyiapkan lembar tagihan...");
           }}
-          className={`px-2.5 py-1.5 ${
-            isAdmin ? "bg-white/10 hover:bg-white/15 cursor-pointer active:scale-95" : "bg-white/5 opacity-50 cursor-not-allowed"
-          } text-white text-[9.5px] font-black font-mono tracking-tight rounded-xl border border-white/10 transition flex items-center gap-1 shrink-0`}
+          className={`px-2.5 py-1.5 bg-white/10 hover:bg-white/15 cursor-pointer active:scale-95 text-white text-[9.5px] font-black font-mono tracking-tight rounded-xl border border-white/10 transition flex items-center gap-1 shrink-0`}
         >
           <Smartphone className="w-3 h-3 text-emerald-400" />
-          {isAdmin ? "BAYAR ARISAN ⚡" : "DIBLOKIR 🔒"}
+          BAYAR ARISAN ⚡
         </button>
       </div>
 
@@ -413,11 +409,13 @@ export default function DashboardView({
 
                 <div className="flex items-center gap-2">
                   <button
-                    disabled={!isAdmin}
                     onClick={() => {
-                      if (!isAdmin) return;
                       if (isPaid) {
                         // Undo payment immediately if paid (for admin correction ease)
+                        if (!isAdmin) {
+                          alert("Hanya admin yang dapat membatalkan status lunas.");
+                          return;
+                        }
                         onTogglePayment(member.id);
                       } else {
                         // Unpaid: Trigger live automated QRIS/Bank simulated window
@@ -428,15 +426,13 @@ export default function DashboardView({
                         setProgressText("Sedang menyiapkan lembar tagihan...");
                       }
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold font-mono tracking-tight transition ${
-                      isAdmin ? "active:scale-95 cursor-pointer" : "cursor-not-allowed opacity-80"
-                    } ${
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold font-mono tracking-tight transition active:scale-95 cursor-pointer ${
                       isPaid 
                         ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25" 
                         : "bg-rose-500/15 text-rose-400 border border-rose-500/20 hover:bg-rose-500/25"
                     }`}
                   >
-                    {isPaid ? "LUNAS ✔" : (isAdmin ? "BAYAR ⚡" : "BELUM LUNAS")}
+                    {isPaid ? "LUNAS ✔" : "BAYAR ⚡"}
                   </button>
                 </div>
               </div>
@@ -598,6 +594,10 @@ export default function DashboardView({
                     ) : (
                       <button
                         onClick={async () => {
+                          if (!isAdmin) {
+                            alert("Hanya Admin yang dapat melanjutkan proses transaksi atau validasi lunas.");
+                            return;
+                          }
                           if (selectedMethod === "cash") {
                             // Instant cash approval and toggle
                             if (activeMemberPayment) {
