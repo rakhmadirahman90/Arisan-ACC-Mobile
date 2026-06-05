@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArisanHistory, Member, ArisanConfig, PaymentStatus } from "../types";
 import { formatRupiah } from "../data";
+import toast from "react-hot-toast";
+import { exportToExcel, exportToPDF } from "../lib/exportUtils";
 import { 
   History, 
   Trophy, 
@@ -443,6 +445,54 @@ export default function HistoryView({
                     <strong className="text-[10px] font-mono font-black text-amber-400">{formatRupiah(grandTotalConsumption)}</strong>
                     <span className="block text-[7.5px] text-amber-500/80 font-mono mt-0.5">Rp {consumptionShare.toLocaleString("id-ID")} x {completedRounds * memberList.length + paidCountCurrent} lunas</span>
                   </div>
+                </div>
+              </div>
+
+              {/* EXPORT ACTION DECK */}
+              <div className="p-3.5 bg-white/[0.02] border border-white/10 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 relative overflow-hidden">
+                <div className="absolute right-0 bottom-0 opacity-[0.02]">
+                  <FileText className="w-24 h-24 text-zinc-100" />
+                </div>
+                <div className="space-y-0.5">
+                  <h3 className="text-[10.5px] font-black uppercase text-zinc-200 font-sans flex items-center gap-1.5 leading-none">
+                    <FileText className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    Unduh Rekap Laporan Lengkap
+                  </h3>
+                  <p className="text-[9px] text-zinc-400 leading-tight">
+                    Cetak pembukuan arisan format resmi PDF atau Excel siap dibagikan ke grup Whatsapp Kopdar.
+                  </p>
+                </div>
+                <div className="flex gap-2 w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      exportToExcel({
+                        history,
+                        members: memberList,
+                        config: activeConfig as ArisanConfig,
+                        payments: paymentsList,
+                      });
+                      toast.success("Berhasil mengunduh rekap Excel!");
+                    }}
+                    className="flex-1 sm:flex-none cursor-pointer flex items-center justify-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 font-mono text-[9px] font-black px-3 py-2 rounded-xl transition duration-150"
+                  >
+                    <span>Excel (.xlsx)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      exportToPDF({
+                        history,
+                        members: memberList,
+                        config: activeConfig as ArisanConfig,
+                        payments: paymentsList,
+                      });
+                      toast.success("Berhasil mengunduh rekap PDF!");
+                    }}
+                    className="flex-1 sm:flex-none cursor-pointer flex items-center justify-center gap-1.5 bg-sky-500/10 hover:bg-sky-500/15 border border-sky-500/20 text-sky-400 font-mono text-[9px] font-black px-3 py-2 rounded-xl transition duration-150"
+                  >
+                    <span>PDF (.pdf)</span>
+                  </button>
                 </div>
               </div>
 
