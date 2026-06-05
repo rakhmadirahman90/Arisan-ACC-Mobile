@@ -385,9 +385,15 @@ export default function DashboardView({
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold font-mono text-white text-xs uppercase overflow-hidden shrink-0 ${member.avatarColor}`}>
-                    {member.name.substring(0, 2)}
-                  </div>
+                  {member.photo ? (
+                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10 shrink-0 shadow-md">
+                      <img src={member.photo} alt={member.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    </div>
+                  ) : (
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold font-mono text-white text-xs uppercase overflow-hidden shrink-0 ${member.avatarColor}`}>
+                      {member.name.substring(0, 2)}
+                    </div>
+                  )}
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-bold text-white truncate block flex items-center gap-1">
