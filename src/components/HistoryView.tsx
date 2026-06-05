@@ -46,6 +46,7 @@ export default function HistoryView({
   // Tabs: "silsilah" (Original Winner list), "keuangan" (New Financial Recap), "ai-advisor" (New AI Financial Advisor)
   const [subTab, setSubTab] = useState<"silsilah" | "keuangan" | "ai-advisor">("silsilah");
   const [searchQuery, setSearchQuery] = useState("");
+  const [historySearchQuery, setHistorySearchQuery] = useState("");
 
   const memberList = members || [];
   const activeConfig = config || { contributionAmount: 60000, currentRound: 11, totalRounds: 26, currentWinner: "" };
@@ -53,6 +54,18 @@ export default function HistoryView({
 
   // Sort history reverse to show newest first
   const sortedHistory = [...history].sort((a, b) => b.round - a.round);
+
+  // Filter history with search query
+  const filteredHistory = sortedHistory.filter((item) => {
+    if (!historySearchQuery.trim()) return true;
+    const term = historySearchQuery.toLowerCase();
+    return (
+      item.winnerName.toLowerCase().includes(term) ||
+      item.winnerVehicle.toLowerCase().includes(term) ||
+      `putaran ${item.round}`.includes(term) ||
+      `round ${item.round}`.includes(term)
+    );
+  });
   
   // Calculate aggregated stats
   const totalPaidOut = history.reduce((sum, h) => sum + h.prizeAmount, 0);
@@ -352,9 +365,31 @@ export default function HistoryView({
                   Data Arisan Pemenang
                 </h3>
 
+                {/* Silsilah Search Bar */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Cari pemenang, kejuaraan, atau unit kendaraan..."
+                    value={historySearchQuery}
+                    onChange={(e) => setHistorySearchQuery(e.target.value)}
+                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/20 transition font-sans"
+                  />
+                  <div className="absolute left-3 top-2.5 text-zinc-500">
+                    <Search className="w-3.5 h-3.5" />
+                  </div>
+                  {historySearchQuery && (
+                    <button
+                      onClick={() => setHistorySearchQuery("")}
+                      className="absolute right-3 top-2.5 text-[10px] text-zinc-400 font-mono hover:text-white transition cursor-pointer font-bold"
+                    >
+                      Ulang
+                    </button>
+                  )}
+                </div>
+
                 <div className="space-y-3 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/5">
-                  {sortedHistory.length > 0 ? (
-                     sortedHistory.map((item, index) => (
+                  {filteredHistory.length > 0 ? (
+                     filteredHistory.map((item, index) => (
                       <div
                         key={item.id}
                         className="flex gap-4 relative font-sans"
@@ -401,8 +436,8 @@ export default function HistoryView({
                       </div>
                     ))
                   ) : (
-                    <div className="text-center bg-black/25 border border-white/5 rounded-xl p-6 text-zinc-650 text-xs font-mono ml-4">
-                      🏁 Belum ada putaran selesai. Ayo gas kocokan pertamamu!
+                    <div className="text-center bg-black/25 border border-white/5 rounded-xl p-6 text-zinc-600 text-xs font-mono ml-4">
+                      {historySearchQuery ? `🏁 Tidak ada pemenang arisan yang cocok dengan "${historySearchQuery}".` : "🏁 Belum ada putaran selesai. Ayo gas kocokan pertamamu!"}
                     </div>
                   )}
                 </div>

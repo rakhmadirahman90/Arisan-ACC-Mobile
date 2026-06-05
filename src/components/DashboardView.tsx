@@ -21,7 +21,8 @@ import {
   X,
   RefreshCw,
   Sparkles,
-  Check
+  Check,
+  Search
 } from "lucide-react";
 
 interface DashboardViewProps {
@@ -74,6 +75,7 @@ export default function DashboardView({
   const percentComplete = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0;
 
   // Payment gateway modal states
+  const [searchQuery, setSearchQuery] = useState("");
   const [activeMemberPayment, setActiveMemberPayment] = useState<Member | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<"qris" | "bank" | "cash">("qris");
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "waiting" | "verified">("idle");
@@ -369,82 +371,124 @@ export default function DashboardView({
           </span>
         </div>
 
+        {/* Search Bar */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Cari pembalap, unit, atau HP..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white/[0.04] border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/20 transition font-sans"
+          />
+          <div className="absolute left-3 top-2.5 text-zinc-500">
+            <Search className="w-3.5 h-3.5" />
+          </div>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-2.5 text-[10px] text-zinc-400 font-mono hover:text-white transition cursor-pointer font-bold"
+            >
+              Ulang
+            </button>
+          )}
+        </div>
+
         {/* Member Grid Row */}
         <div className="grid grid-cols-1 gap-2">
-          {members.map((member) => {
-            const isPaid = paidMemberIds.includes(member.id);
-            const wonThisOrPrior = member.wonRound !== null;
-            
-            return (
-              <div 
-                key={member.id}
-                className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
-                  isPaid 
-                    ? "bg-emerald-500/10 border-emerald-500/20" 
-                    : "bg-white/5 border-white/5 hover:border-white/10"
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  {member.photo ? (
-                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10 shrink-0 shadow-md">
-                      <img src={member.photo} alt={member.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    </div>
-                  ) : (
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold font-mono text-white text-xs uppercase overflow-hidden shrink-0 ${member.avatarColor}`}>
-                      {member.name.substring(0, 2)}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-white truncate block flex items-center gap-1">
-                        {member.name}
-                        {wonThisOrPrior && (
-                          <Trophy className="w-3 h-3 text-amber-400 fill-amber-500/20 shrink-0 select-none" />
-                        )}
-                      </span>
-                      {wonThisOrPrior && (
-                        <span className={`px-1 text-[8px] ${activeLivery.bgPill} ${activeLivery.textAccent} font-bold border ${activeLivery.borderAccent} rounded-xs font-mono`}>
-                          WON R-{member.wonRound}
+          {(() => {
+            const listFiltered = members.filter((member) => {
+              if (!searchQuery.trim()) return true;
+              const term = searchQuery.toLowerCase();
+              return (
+                member.name.toLowerCase().includes(term) ||
+                member.vehicle.toLowerCase().includes(term) ||
+                (member.phone && member.phone.toLowerCase().includes(term))
+              );
+            });
+
+            if (listFiltered.length === 0) {
+              return (
+                <div className="text-center py-6 text-[10px] text-zinc-500 font-mono bg-white/[0.01] border border-dashed border-white/5 rounded-xl">
+                  Pembalap "{searchQuery}" tidak ditemukan.
+                </div>
+              );
+            }
+
+            return listFiltered.map((member) => {
+              const isPaid = paidMemberIds.includes(member.id);
+              const wonThisOrPrior = member.wonRound !== null;
+              
+              return (
+                <div 
+                  key={member.id}
+                  className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
+                    isPaid 
+                      ? "bg-emerald-500/10 border-emerald-500/20" 
+                      : "bg-white/5 border-white/5 hover:border-white/10"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {member.photo ? (
+                      <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10 shrink-0 shadow-md">
+                        <img src={member.photo} alt={member.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      </div>
+                    ) : (
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold font-mono text-white text-xs uppercase overflow-hidden shrink-0 ${member.avatarColor}`}>
+                        {member.name.substring(0, 2)}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-white truncate block flex items-center gap-1">
+                          {member.name}
+                          {wonThisOrPrior && (
+                            <Trophy className="w-3 h-3 text-amber-400 fill-amber-500/20 shrink-0 select-none" />
+                          )}
                         </span>
-                      )}
+                        {wonThisOrPrior && (
+                          <span className={`px-1 text-[8px] ${activeLivery.bgPill} ${activeLivery.textAccent} font-bold border ${activeLivery.borderAccent} rounded-xs font-mono`}>
+                            WON R-{member.wonRound}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-zinc-500 truncate block font-mono">
+                        {member.vehicle}
+                      </span>
                     </div>
-                    <span className="text-[10px] text-zinc-500 truncate block font-mono">
-                      {member.vehicle}
-                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        if (isPaid) {
+                          // Undo payment immediately if paid (for admin correction ease)
+                          if (!isAdmin) {
+                            toast.error("Hanya admin yang dapat membatalkan status lunas.");
+                            return;
+                          }
+                          onTogglePayment(member.id);
+                        } else {
+                          // Unpaid: Trigger live automated QRIS/Bank simulated window
+                          setActiveMemberPayment(member);
+                          setSelectedMethod("qris");
+                          setPaymentStatus("idle");
+                          setCountdownSeconds(3);
+                          setProgressText("Sedang menyiapkan lembar tagihan...");
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold font-mono tracking-tight transition active:scale-95 cursor-pointer ${
+                        isPaid 
+                          ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25" 
+                          : "bg-rose-500/15 text-rose-400 border border-rose-500/20 hover:bg-rose-500/25"
+                      }`}
+                    >
+                      {isPaid ? "LUNAS ✔" : "BAYAR ⚡"}
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      if (isPaid) {
-                        // Undo payment immediately if paid (for admin correction ease)
-                        if (!isAdmin) {
-                          toast.error("Hanya admin yang dapat membatalkan status lunas.");
-                          return;
-                        }
-                        onTogglePayment(member.id);
-                      } else {
-                        // Unpaid: Trigger live automated QRIS/Bank simulated window
-                        setActiveMemberPayment(member);
-                        setSelectedMethod("qris");
-                        setPaymentStatus("idle");
-                        setCountdownSeconds(3);
-                        setProgressText("Sedang menyiapkan lembar tagihan...");
-                      }
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold font-mono tracking-tight transition active:scale-95 cursor-pointer ${
-                      isPaid 
-                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25" 
-                        : "bg-rose-500/15 text-rose-400 border border-rose-500/20 hover:bg-rose-500/25"
-                    }`}
-                  >
-                    {isPaid ? "LUNAS ✔" : "BAYAR ⚡"}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            });
+          })()}
         </div>
       </div>
 

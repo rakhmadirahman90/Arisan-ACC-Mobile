@@ -19,7 +19,8 @@ import {
   Flame,
   UserCheck,
   Lock,
-  Unlock
+  Unlock,
+  Search
 } from "lucide-react";
 
 interface RaffleViewProps {
@@ -57,8 +58,17 @@ export default function RaffleView({
   // 2. Identify who hasn't won a round in the past (wonRound === null)
   const nonWinners = members.filter((m) => m.wonRound === null);
   
-  // 3. Eligible candidates: must have paid AND must not have won in the past
+  // 3. Eligible candidates: must have paid AND must not have past won record
   const eligibleCandidates = nonWinners.filter((m) => paidMemberIds.includes(m.id));
+  
+  const filteredCandidates = eligibleCandidates.filter((candidate) => {
+    if (!candidateSearchQuery.trim()) return true;
+    const term = candidateSearchQuery.toLowerCase();
+    return (
+      candidate.name.toLowerCase().includes(term) ||
+      candidate.vehicle.toLowerCase().includes(term)
+    );
+  });
   
   // Current Pot size (excluding Rp 10.000 consumption)
   const arisanShare = Math.round((config.contributionAmount * 5) / 6);
@@ -67,6 +77,7 @@ export default function RaffleView({
   // Raffle flow state
   // "idle" | "preparing" | "rolling" | "slowing" | "winner_selected"
   const [raffleState, setRaffleState] = useState<"idle" | "rolling" | "winner_selected">("idle");
+  const [candidateSearchQuery, setCandidateSearchQuery] = useState("");
   const [highlightMember, setHighlightMember] = useState<Member | null>(null);
   const [selectedWinner, setSelectedWinner] = useState<Member | null>(null);
   const [rollCount, setRollCount] = useState(0);
@@ -504,9 +515,31 @@ export default function RaffleView({
           </span>
         </div>
 
+        {/* Candidate Search Bar */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Cari partisipan kocok..."
+            value={candidateSearchQuery}
+            onChange={(e) => setCandidateSearchQuery(e.target.value)}
+            className="w-full bg-white/[0.04] border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/20 transition font-sans"
+          />
+          <div className="absolute left-3 top-2.5 text-zinc-500">
+            <Search className="w-3.5 h-3.5" />
+          </div>
+          {candidateSearchQuery && (
+            <button
+              onClick={() => setCandidateSearchQuery("")}
+              className="absolute right-3 top-2.5 text-[10px] text-zinc-400 font-mono hover:text-white transition cursor-pointer font-bold"
+            >
+              Ulang
+            </button>
+          )}
+        </div>
+
         <div className="max-h-[17vh] overflow-y-auto space-y-1.5 border border-white/5 rounded-xl p-2.5 bg-black/25 font-sans">
-          {eligibleCandidates.length > 0 ? (
-            eligibleCandidates.map((candidate) => (
+          {filteredCandidates.length > 0 ? (
+            filteredCandidates.map((candidate) => (
               <div 
                 key={candidate.id}
                 className="flex items-center justify-between text-xs font-semibold px-2 py-1.5 bg-white/5 border border-white/5 hover:border-white/10 rounded-lg text-zinc-200"
@@ -517,7 +550,7 @@ export default function RaffleView({
             ))
           ) : (
             <div className="text-center py-6 text-zinc-600 font-mono text-[10px]">
-              Tidak ada partisipan lunas. Tandai "LUNAS" pada menu Beranda atau Anggota terlebih dahulu.
+              {candidateSearchQuery ? `Tidak ada kualifikasi yang cocok dengan "${candidateSearchQuery}".` : "Tidak ada partisipan lunas. Tandai \"LUNAS\" pada menu Beranda atau Anggota terlebih dahulu."}
             </div>
           )}
         </div>
