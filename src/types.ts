@@ -6,6 +6,7 @@ export interface Member {
   joinDate: string;
   wonRound: number | null; // null if hasn't won yet, otherwise the round number they won
   avatarColor: string; // Tailwind bg color class
+  photo?: string; // Base64 compressed image
 }
 
 export interface ArisanConfig {

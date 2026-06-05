@@ -11,7 +11,8 @@
         "phone": { "type": "string" },
         "joinDate": { "type": "string" },
         "wonRound": { "type": "number", "nullable": true },
-        "avatarColor": { "type": "string" }
+        "avatarColor": { "type": "string" },
+        "photo": { "type": "string", "nullable": true }
       },
       "required": ["id", "name", "vehicle", "phone", "joinDate", "avatarColor"]
     },

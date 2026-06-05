@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Member, PaymentStatus, ArisanConfig } from "../types";
+import { compressImage } from "../lib/imageUtils";
+import toast from "react-hot-toast";
 import { 
   Users, 
   UserPlus, 
@@ -13,7 +15,8 @@ import {
   Check, 
   Trophy,
   Crown,
-  Pencil
+  Pencil,
+  Camera
 } from "lucide-react";
 
 interface MembersViewProps {
@@ -57,6 +60,8 @@ export default function MembersView({
   const [vehicle, setVehicle] = useState("");
   const [phone, setPhone] = useState("");
   const [selectedColor, setSelectedColor] = useState(PAINT_COLORS[0].class);
+  const [photo, setPhoto] = useState<string | undefined>(undefined);
+  const [compressing, setCompressing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleOpenAdd = () => {
@@ -65,6 +70,8 @@ export default function MembersView({
     setVehicle("");
     setPhone("");
     setSelectedColor(PAINT_COLORS[0].class);
+    setPhoto(undefined);
+    setCompressing(false);
     setErrorMsg("");
     setIsAddOpen(true);
   };
@@ -75,6 +82,8 @@ export default function MembersView({
     setVehicle(member.vehicle);
     setPhone(member.phone);
     setSelectedColor(member.avatarColor || PAINT_COLORS[0].class);
+    setPhoto(member.photo);
+    setCompressing(false);
     setErrorMsg("");
     setIsAddOpen(true);
   };
@@ -110,6 +119,7 @@ export default function MembersView({
         vehicle: vehicle.trim(),
         phone: sanitizedPhone,
         avatarColor: selectedColor,
+        photo: photo,
       });
     } else {
       onAddMember({
@@ -117,6 +127,7 @@ export default function MembersView({
         vehicle: vehicle.trim(),
         phone: sanitizedPhone,
         avatarColor: selectedColor,
+        photo: photo,
       });
     }
 
@@ -124,6 +135,7 @@ export default function MembersView({
     setName("");
     setVehicle("");
     setPhone("");
+    setPhoto(undefined);
     setEditingId(null);
     setIsAddOpen(false);
   };
@@ -229,6 +241,82 @@ export default function MembersView({
                 </div>
               </div>
 
+              {/* Upload Foto Anggota */}
+              <div className="space-y-1.5 bg-white/[0.02] border border-white/5 rounded-xl p-3">
+                <label className="block text-[10px] uppercase font-mono font-bold text-zinc-400">
+                  Foto Anggota (Unggah & Kompres)
+                </label>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden group">
+                    {photo ? (
+                      <>
+                        <img src={photo} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        <button
+                          type="button"
+                          onClick={() => setPhoto(undefined)}
+                          className="absolute inset-0 bg-red-650/90 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
+                          title="Hapus Foto"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : (
+                      <Camera className="w-5 h-5 text-zinc-600" />
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <label className="cursor-pointer inline-flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 font-mono text-[10px] px-2.5 py-1.5 rounded-lg transition">
+                        <Camera className="w-3.5 h-3.5 text-zinc-400" />
+                        <span>{photo ? "Ganti Foto" : "Pilih Foto"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            if (!file.type.startsWith("image/")) {
+                              toast.error("Format berkas harus berupa gambar!");
+                              return;
+                            }
+                            setCompressing(true);
+                            try {
+                              // Compress to maximum 120 width & height (ideal size ~5KB - 10KB)
+                              const base64 = await compressImage(file, 120, 120, 0.75);
+                              setPhoto(base64);
+                              toast.success("Foto berhasil dikompres!");
+                            } catch (err) {
+                              console.error("Image compression error:", err);
+                              toast.error("Gagal mengompres gambar.");
+                            } finally {
+                              setCompressing(false);
+                            }
+                          }}
+                        />
+                      </label>
+                      {photo && (
+                        <button
+                          type="button"
+                          onClick={() => setPhoto(undefined)}
+                          className="text-[10px] font-mono text-red-400 hover:text-red-300 transition"
+                        >
+                          Hapus Foto
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[9px] text-zinc-500 mt-1 font-mono leading-tight">
+                      {compressing ? (
+                        <span className="text-amber-400 font-bold animate-pulse">Mengompres gambar...</span>
+                      ) : (
+                        "Foto otomatis dikompres sangat ringkas (<10KB) demi performa kilat & kuota database aman."
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Vehicle Stamp Paint Selector */}
               <div>
                 <label className="block text-[10px] uppercase font-mono font-bold text-zinc-400 mb-1.5">
@@ -297,15 +385,21 @@ export default function MembersView({
                   )}
 
                   <div className="flex items-center gap-3 min-w-0">
-                    {/* Decorative Avatar with dynamic vehicle theme */}
-                    <div className={`w-10 h-10 rounded-xl text-xs font-black tracking-tighter text-zinc-100 font-mono flex flex-col items-center justify-center shrink-0 shadow-inner select-none ${member.avatarColor}`}>
-                      <span className="leading-none text-[14px]">
-                        {member.name.substring(0, 2).toUpperCase()}
-                      </span>
-                      <span className="text-[8px] opacity-75 font-normal mt-0.5 font-sans leading-none">
-                        {member.name.includes("Bro") ? "MALE" : member.name.includes("Sist") ? "FEM" : "DRV"}
-                      </span>
-                    </div>
+                    {/* Decorative Avatar with dynamic vehicle theme or uploaded photo */}
+                    {member.photo ? (
+                      <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 shrink-0 shadow-md">
+                        <img src={member.photo} alt={member.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      </div>
+                    ) : (
+                      <div className={`w-10 h-10 rounded-xl text-xs font-black tracking-tighter text-zinc-100 font-mono flex flex-col items-center justify-center shrink-0 shadow-inner select-none ${member.avatarColor}`}>
+                        <span className="leading-none text-[14px]">
+                          {member.name.substring(0, 2).toUpperCase()}
+                        </span>
+                        <span className="text-[8px] opacity-75 font-normal mt-0.5 font-sans leading-none">
+                          {member.name.includes("Bro") ? "MALE" : member.name.includes("Sist") ? "FEM" : "DRV"}
+                        </span>
+                      </div>
+                    )}
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">

@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { ArisanConfig } from "../types";
 import { formatRupiah, LIVERY_THEMES } from "../data";
 import toast from "react-hot-toast";
+import { compressImage } from "../lib/imageUtils";
 import { 
   Settings, 
   DollarSign, 
@@ -36,55 +37,6 @@ interface SettingsViewProps {
   onSetAdmin: (val: boolean) => void;
   onReplayIntro: () => void;
 }
-
-const compressImage = (file: File, maxWidth: number, maxHeight: number, quality: number): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-
-        // Maintain relative aspect ratio
-        if (width > height) {
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          reject(new Error("Cannot get canvas context"));
-          return;
-        }
-
-        ctx.drawImage(img, 0, 0, width, height);
-        // Output compressed base64
-        const compressedBase64 = canvas.toDataURL("image/jpeg", quality);
-        resolve(compressedBase64);
-      };
-      img.onerror = (err) => {
-        reject(err);
-      };
-    };
-    reader.onerror = (err) => {
-      reject(err);
-    };
-  });
-};
 
 export default function SettingsView({
   config,
