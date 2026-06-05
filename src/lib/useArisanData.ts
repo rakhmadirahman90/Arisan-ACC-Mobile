@@ -18,43 +18,33 @@ export function useArisanData() {
       if (docSnap.exists()) {
         setConfig(docSnap.data() as ArisanConfig);
       } else {
-        // initialize
+        // Database is fresh or uninitialized. Seed everything once!
         setDoc(doc(db, "config", "main"), INITIAL_CONFIG);
+        INITIAL_MEMBERS.forEach((m) => {
+          setDoc(doc(db, "members", m.id), m);
+        });
+        INITIAL_PAYMENTS.forEach((p) => {
+          setDoc(doc(db, "payments", `${p.memberId}-${p.round}`), p);
+        });
+        INITIAL_HISTORY.forEach((h) => {
+          setDoc(doc(db, "history", h.id), h);
+        });
       }
     });
 
     const unsubscribeMembers = onSnapshot(collection(db, "members"), (snapshot) => {
-      if (snapshot.empty && members.length === INITIAL_MEMBERS.length) {
-        // Seed initial data if empty
-        INITIAL_MEMBERS.forEach((m) => {
-          setDoc(doc(db, "members", m.id), m);
-        });
-      } else {
-        const data = snapshot.docs.map((d) => d.data() as Member);
-        setMembers(data);
-      }
+      const data = snapshot.docs.map((d) => d.data() as Member);
+      setMembers(data);
     });
 
     const unsubscribePayments = onSnapshot(collection(db, "payments"), (snapshot) => {
-      if (snapshot.empty && payments.length === INITIAL_PAYMENTS.length) {
-        INITIAL_PAYMENTS.forEach((p) => {
-          setDoc(doc(db, "payments", `${p.memberId}-${p.round}`), p);
-        });
-      } else {
-        const data = snapshot.docs.map((d) => d.data() as PaymentStatus);
-        setPayments(data);
-      }
+      const data = snapshot.docs.map((d) => d.data() as PaymentStatus);
+      setPayments(data);
     });
 
     const unsubscribeHistory = onSnapshot(collection(db, "history"), (snapshot) => {
-      if (snapshot.empty && history.length === INITIAL_HISTORY.length) {
-        INITIAL_HISTORY.forEach((h) => {
-          setDoc(doc(db, "history", h.id), h);
-        });
-      } else {
-        const data = snapshot.docs.map((d) => d.data() as ArisanHistory);
-        setHistory(data);
-      }
+      const data = snapshot.docs.map((d) => d.data() as ArisanHistory);
+      setHistory(data);
     });
 
     setLoading(false);
@@ -231,6 +221,71 @@ export function useArisanData() {
     }
   };
 
+  const deleteAllMembers = async () => {
+    try {
+      // Delete all member docs
+      const memberDeletes = members.map((m) => deleteDoc(doc(db, "members", m.id)));
+      await Promise.all(memberDeletes);
+
+      // Delete all payment docs
+      const paymentDeletes = payments.map((p) => deleteDoc(doc(db, "payments", `${p.memberId}-${p.round}`)));
+      await Promise.all(paymentDeletes);
+
+      toast.success("Semua data anggota & pembayaran berhasil dihapus!");
+    } catch (err) {
+      toast.error("Gagal menghapus seluruh data anggota");
+    }
+  };
+
+  const deleteMultipleMembers = async (memberIds: string[]) => {
+    try {
+      // Delete selected member docs
+      const memberDeletes = memberIds.map((id) => deleteDoc(doc(db, "members", id)));
+      await Promise.all(memberDeletes);
+
+      // Delete payment docs for selected member docs
+      const paymentsToDelete = payments.filter((p) => memberIds.includes(p.memberId));
+      const paymentDeletes = paymentsToDelete.map((p) => deleteDoc(doc(db, "payments", `${p.memberId}-${p.round}`)));
+      await Promise.all(paymentDeletes);
+
+      toast.success(`${memberIds.length} anggota berhasil dihapus!`);
+    } catch (err) {
+      toast.error("Gagal menghapus anggota terpilih");
+    }
+  };
+
+  const importMembers = async (newMembersList: Omit<Member, "id" | "joinDate" | "wonRound">[]) => {
+    try {
+      const promises = newMembersList.map(async (m) => {
+        const newId = `mem-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+        const newMember: Member = {
+          ...m,
+          id: newId,
+          joinDate: new Date().toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          }),
+          wonRound: null,
+        };
+        await setDoc(doc(db, "members", newId), newMember);
+
+        // Prepopulate current round payment setup
+        const newPayment: PaymentStatus = {
+          memberId: newId,
+          round: config.currentRound,
+          isPaid: false,
+        };
+        await setDoc(doc(db, "payments", `${newId}-${config.currentRound}`), newPayment);
+      });
+
+      await Promise.all(promises);
+      toast.success(`${newMembersList.length} anggota berhasil di-import massal!`);
+    } catch (err) {
+      toast.error("Gagal melakukan import data anggota");
+    }
+  };
+
   return {
     members,
     config,
@@ -244,6 +299,9 @@ export function useArisanData() {
     togglePayment,
     instantPayAll,
     confirmWinner,
-    resetData
+    resetData,
+    deleteAllMembers,
+    deleteMultipleMembers,
+    importMembers
   };
 }

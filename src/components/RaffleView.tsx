@@ -450,7 +450,7 @@ export default function RaffleView({
             >
               {isCurrentlyLocked && isAdmin ? (
                 <>
-                  <Unlock className="w-4 h-4 text-amber-300" /> BYPASS & PUTAR DI KOPDAR {currentRound} 🏎️💨
+                  <Unlock className="w-4 h-4 text-amber-300" /> BYPASS & PUTAR DI ARISAN {currentRound} 🏎️💨
                 </>
               ) : (
                 <>
@@ -539,12 +539,17 @@ export default function RaffleView({
 
         <div className="max-h-[17vh] overflow-y-auto space-y-1.5 border border-white/5 rounded-xl p-2.5 bg-black/25 font-sans">
           {filteredCandidates.length > 0 ? (
-            filteredCandidates.map((candidate) => (
+            filteredCandidates.map((candidate, idx) => (
               <div 
                 key={candidate.id}
                 className="flex items-center justify-between text-xs font-semibold px-2 py-1.5 bg-white/5 border border-white/5 hover:border-white/10 rounded-lg text-zinc-200"
               >
-                <span className="truncate max-w-[180px]">{candidate.name}</span>
+                <div className="flex items-center gap-1.5 min-w-0 max-w-[180px]">
+                  <span className="text-[10px] font-mono font-bold text-zinc-500 shrink-0">
+                    {idx + 1}.
+                  </span>
+                  <span className="truncate">{candidate.name}</span>
+                </div>
                 <span className="text-[10px] text-zinc-500 font-mono truncate max-w-[120px]">{candidate.vehicle}</span>
               </div>
             ))

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Member, PaymentStatus, ArisanConfig } from "../types";
 import { compressImage } from "../lib/imageUtils";
 import toast from "react-hot-toast";
+import * as XLSX from "xlsx";
 import { 
   Users, 
   UserPlus, 
@@ -16,7 +17,10 @@ import {
   Trophy,
   Crown,
   Pencil,
-  Camera
+  Camera,
+  Upload,
+  CheckSquare,
+  Square
 } from "lucide-react";
 
 interface MembersViewProps {
@@ -24,6 +28,9 @@ interface MembersViewProps {
   onAddMember: (memberData: Omit<Member, "id" | "joinDate" | "wonRound">) => void;
   onDeleteMember: (id: string) => void;
   onEditMember?: (id: string, memberData: Omit<Member, "id" | "joinDate" | "wonRound">) => void;
+  onDeleteAllMembers?: () => void;
+  onDeleteMultipleMembers?: (ids: string[]) => void;
+  onImportMembers?: (newMembersList: Omit<Member, "id" | "joinDate" | "wonRound">[]) => void;
   activeLivery: any;
   payments?: PaymentStatus[];
   config?: ArisanConfig;
@@ -46,6 +53,9 @@ export default function MembersView({
   onAddMember,
   onDeleteMember,
   onEditMember,
+  onDeleteAllMembers,
+  onDeleteMultipleMembers,
+  onImportMembers,
   activeLivery,
   payments = [],
   config,
@@ -53,6 +63,13 @@ export default function MembersView({
 }: MembersViewProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importText, setImportText] = useState("");
+  const [importPreview, setImportPreview] = useState<Omit<Member, "id" | "joinDate" | "wonRound">[]>([]);
+  
+  // Selection mode states
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   
   // New member form states
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -63,6 +80,174 @@ export default function MembersView({
   const [photo, setPhoto] = useState<string | undefined>(undefined);
   const [compressing, setCompressing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const parsePastedText = (text: string) => {
+    const lines = text.split(/\r?\n/);
+    const parsed: Omit<Member, "id" | "joinDate" | "wonRound">[] = [];
+
+    lines.forEach((line) => {
+      if (!line.trim()) return;
+      
+      // Split by comma, tab, or semicolon
+      let parts: string[] = [];
+      if (line.includes("\t")) {
+        parts = line.split("\t");
+      } else if (line.includes(";")) {
+        parts = line.split(";");
+      } else {
+        parts = line.split(",");
+      }
+
+      // Clean up quotes and trim
+      const cleanParts = parts.map((p) => p.replace(/^["']|["']$/g, "").trim());
+      if (cleanParts.length >= 2) {
+        const pName = cleanParts[0];
+        const pVehicle = cleanParts[1];
+        let pPhone = cleanParts[2] || "";
+
+        // sanitize phone
+        let sanitizedPhone = pPhone.replace(/[^0-9]/g, "");
+        if (sanitizedPhone.startsWith("0")) {
+          sanitizedPhone = "62" + sanitizedPhone.slice(1);
+        } else if (!sanitizedPhone.startsWith("62") && sanitizedPhone.length > 5) {
+          sanitizedPhone = "62" + sanitizedPhone;
+        }
+        if (!sanitizedPhone) {
+          sanitizedPhone = "628" + Math.floor(100000000 + Math.random() * 900000000);
+        }
+
+        parsed.push({
+          name: pName,
+          vehicle: pVehicle,
+          phone: sanitizedPhone,
+          avatarColor: PAINT_COLORS[Math.floor(Math.random() * PAINT_COLORS.length)].class,
+          photo: undefined,
+        });
+      }
+    });
+
+    return parsed;
+  };
+
+  const handleFileUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: "binary" });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        // Parse rows as raw array of arrays
+        const rows = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
+
+        if (rows.length === 0) {
+          toast.error("Berkas kosong!");
+          return;
+        }
+
+        // Check if first row is headers
+        let startIdx = 0;
+        let nameCol = 0;
+        let vehicleCol = 1;
+        let phoneCol = 2;
+
+        const firstRow = rows[0]?.map((cell: any) => String(cell || "").toLowerCase().trim()) || [];
+        const hasHeaders = firstRow.some((cell: string) => 
+          cell.includes("nama") || cell.includes("name") || 
+          cell.includes("kendaraan") || cell.includes("vehicle") || cell.includes("mobil") ||
+          cell.includes("telepon") || cell.includes("phone") || cell.includes("wa") || cell.includes("hp")
+        );
+
+        if (hasHeaders) {
+          startIdx = 1;
+          firstRow.forEach((cell: string, idx: number) => {
+            if (cell.includes("nama") || cell.includes("name")) {
+              nameCol = idx;
+            } else if (cell.includes("kendaraan") || cell.includes("vehicle") || cell.includes("mobil") || cell.includes("motor")) {
+              vehicleCol = idx;
+            } else if (cell.includes("telepon") || cell.includes("phone") || cell.includes("wa") || cell.includes("hp")) {
+              phoneCol = idx;
+            }
+          });
+        }
+
+        const parsed: Omit<Member, "id" | "joinDate" | "wonRound">[] = [];
+        for (let i = startIdx; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || row.length === 0) continue;
+
+          const pName = String(row[nameCol] || "").trim();
+          const pVehicle = String(row[vehicleCol] || "").trim();
+          const pPhone = String(row[phoneCol] || "").trim();
+
+          if (!pName || !pVehicle) continue;
+
+          // sanitize phone
+          let sanitizedPhone = pPhone.replace(/[^0-9]/g, "");
+          if (sanitizedPhone.startsWith("0")) {
+            sanitizedPhone = "62" + sanitizedPhone.slice(1);
+          } else if (!sanitizedPhone.startsWith("62") && sanitizedPhone.length > 5) {
+            sanitizedPhone = "62" + sanitizedPhone;
+          }
+          if (!sanitizedPhone) {
+            sanitizedPhone = "628" + Math.floor(100000000 + Math.random() * 900000000);
+          }
+
+          parsed.push({
+            name: pName,
+            vehicle: pVehicle,
+            phone: sanitizedPhone,
+            avatarColor: PAINT_COLORS[Math.floor(Math.random() * PAINT_COLORS.length)].class,
+            photo: undefined,
+          });
+        }
+
+        if (parsed.length === 0) {
+          toast.error("Tidak ada data anggota valid yang dapat di-import!");
+        } else {
+          setImportPreview(parsed);
+          toast.success(`Berhasil memuat ${parsed.length} data anggota! Silakan periksa tinjauan dan klik 'Selesaikan Import Massal'.`);
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Gagal membaca berkas. Pastikan format berkas valid (.xlsx, .xls, .csv).");
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode);
+    setSelectedIds([]);
+  };
+
+  const toggleSelectMember = (id: string) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((item) => item !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const toggleSelectAll = (currentFiltered: Member[]) => {
+    if (selectedIds.length === currentFiltered.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(currentFiltered.map((m) => m.id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) {
+      toast.error("Silakan pilih minimal 1 anggota terlebih dahulu!");
+      return;
+    }
+    if (onDeleteMultipleMembers) {
+      onDeleteMultipleMembers(selectedIds);
+      setIsSelectionMode(false);
+      setSelectedIds([]);
+    }
+  };
 
   const handleOpenAdd = () => {
     setEditingId(null);
@@ -154,30 +339,279 @@ export default function MembersView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="p-5 space-y-4 overflow-y-auto max-h-[70vh] pb-24 scrollbar-none"
+      className="h-full flex flex-col p-5 overflow-hidden text-left"
     >
-      {/* Search Bar + Register Button */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
-          <input
-            type="text"
-            placeholder="Cari anggota arisan..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full bg-white/5 border border-white/10 backdrop-blur-md rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:${activeLivery.borderFocus}`}
-          />
+      <div className="shrink-0 space-y-3 mb-3">
+        {/* Search Bar + Admin Actions Toolbar */}
+      <div className="flex flex-col gap-2">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
+            <input
+              type="text"
+              placeholder="Cari anggota arisan..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`w-full bg-white/5 border border-white/10 backdrop-blur-md rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:${activeLivery.borderFocus}`}
+            />
+          </div>
+          {isAdmin && (
+            <div className="flex gap-1.5 shrink-0">
+              <button
+                onClick={toggleSelectionMode}
+                className={`border p-2.5 rounded-xl transition flex items-center justify-center cursor-pointer ${
+                  isSelectionMode 
+                    ? "bg-[#3b82f6]/20 border-[#3b82f6]/40 text-[#60a5fa]" 
+                    : "bg-white/5 hover:bg-white/10 border-white/10 " + activeLivery.textAccent
+                }`}
+                title={isSelectionMode ? "Batal Pilih Massal" : "Pilih & Hapus Massal Bersamaan"}
+              >
+                <CheckSquare className="w-4.5 h-4.5" />
+              </button>
+
+              <button
+                onClick={() => {
+                  handleOpenAdd();
+                  setIsImportOpen(false);
+                }}
+                className={`bg-white/5 hover:bg-white/10 border border-white/10 ${activeLivery.textAccent} p-2.5 rounded-xl transition flex items-center justify-center cursor-pointer`}
+                title="Tambah Anggota Tunggal"
+              >
+                <UserPlus className="w-4.5 h-4.5" />
+              </button>
+              
+              <button
+                onClick={() => {
+                  setIsImportOpen(!isImportOpen);
+                  setIsAddOpen(false);
+                  setImportPreview([]);
+                  setImportText("");
+                }}
+                className={`bg-white/5 hover:bg-white/10 border border-white/10 ${activeLivery.textAccent} p-2.5 rounded-xl transition flex items-center justify-center cursor-pointer`}
+                title="Import Massal (Excel/CSV)"
+              >
+                <Upload className="w-4.5 h-4.5" />
+              </button>
+
+              <button
+                onClick={onDeleteAllMembers}
+                className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 hover:border-red-500/50 text-red-400 p-2.5 rounded-xl transition flex items-center justify-center cursor-pointer"
+                title="Hapus Seluruh Data Anggota"
+              >
+                <Trash2 className="w-4.5 h-4.5" />
+              </button>
+            </div>
+          )}
         </div>
-        {isAdmin && (
-          <button
-            onClick={handleOpenAdd}
-            className={`bg-white/5 hover:bg-white/10 border border-white/10 ${activeLivery.textAccent} p-2 rounded-xl transition flex items-center justify-center cursor-pointer`}
-            title="Tambah Anggota"
-          >
-            <UserPlus className="w-4.5 h-4.5" />
-          </button>
-        )}
+
+        {/* Selection Mode Actions Bar */}
+        <AnimatePresence>
+          {isSelectionMode && isAdmin && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="flex items-center justify-between bg-zinc-900/50 border border-white/5 rounded-xl p-2.5 mt-1 font-mono text-[9px] uppercase font-bold text-zinc-300 overflow-hidden"
+            >
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => toggleSelectAll(filteredMembers)}
+                  className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md text-zinc-300 active:scale-95 transition cursor-pointer"
+                >
+                  {selectedIds.length === filteredMembers.length ? "Batal Semua" : "Pilih Semua"}
+                </button>
+                <span className="text-zinc-500 font-bold">
+                  {selectedIds.length}/{filteredMembers.length} Terpilih
+                </span>
+              </div>
+
+              <div className="flex gap-1.5">
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={selectedIds.length === 0}
+                  className={`px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 cursor-pointer ${
+                    selectedIds.length > 0 
+                      ? "bg-red-500/20 hover:bg-red-500/35 border border-red-500/30 text-red-400 active:scale-95"
+                      : "bg-[#0b0c10] text-zinc-650 border border-transparent cursor-not-allowed"
+                  }`}
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> HAPUS ({selectedIds.length})
+                </button>
+                <button
+                  onClick={() => {
+                    setIsSelectionMode(false);
+                    setSelectedIds([]);
+                  }}
+                  className="px-2.5 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md text-zinc-400 hover:text-white transition cursor-pointer active:scale-95"
+                >
+                  BATAL
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* Slide down Import Massal Panel */}
+      <AnimatePresence>
+        {isImportOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden bg-[#0d0f17] border border-white/10 rounded-2xl p-4 shadow-xl space-y-3"
+          >
+            <div className="flex justify-between items-center pb-2 border-b border-white/5">
+              <h3 className={`text-xs font-black uppercase font-mono ${activeLivery.textAccent} flex items-center gap-1.5`}>
+                <Upload className={`w-4 h-4 ${activeLivery.textAccent}`} /> Import Anggota Massal
+              </h3>
+              <button 
+                onClick={() => setIsImportOpen(false)}
+                className="text-zinc-500 hover:text-zinc-305 transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-[10px] text-zinc-400 leading-relaxed font-sans">
+              Unggah file spreadsheet <b>(.xlsx, .xls, .csv, .txt)</b> atau tempel data teks. Data baru otomatis tergabung ke dalam daftar keanggotaan.
+            </p>
+
+            {/* Selection Tabs */}
+            <div className="grid grid-cols-2 gap-1.5 p-1 bg-white/[0.02] border border-white/5 rounded-lg text-center font-mono text-[10px] font-bold">
+              <button
+                type="button"
+                onClick={() => {
+                  setImportPreview([]);
+                  setImportText("");
+                }}
+                className={`py-1.5 rounded-md transition cursor-pointer ${
+                  !importText ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-305"
+                }`}
+              >
+                📁 UNGGAH BERKAS
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setImportPreview([]);
+                  setImportText("\n"); // signal paste open
+                }}
+                className={`py-1.5 rounded-md transition cursor-pointer ${
+                  importText ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-305"
+                }`}
+              >
+                📝 SALIN & TEMPEL
+              </button>
+            </div>
+
+            {/* TAB CONTENT A: FILE UPLOAD */}
+            {!importText && (
+              <div className="border border-dashed border-white/10 rounded-xl p-5 text-center hover:bg-white/[0.01] transition relative group">
+                <input
+                  type="file"
+                  accept=".xlsx, .xls, .csv, .txt"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file);
+                  }}
+                />
+                <div className="space-y-2">
+                  <Upload className="w-7 h-7 text-zinc-600 mx-auto group-hover:text-zinc-400 group-hover:scale-105 transition" />
+                  <div className="text-[11px] text-zinc-300">
+                    <span className="text-white font-bold">Pilih berkas</span> Excel / CSV
+                  </div>
+                  <p className="text-[9px] text-zinc-500 font-mono">
+                    Pastikan kolom berisi: Nama, Model Kendaraan, No. HP (Optional)
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT B: TEXT PASTE */}
+            {importText && (
+              <div className="space-y-1.5">
+                <label className="block text-[9px] font-bold uppercase tracking-wider text-zinc-500 font-mono">
+                  Tempel Baris Data (Satu Baris = Satu Anggota)
+                </label>
+                <textarea
+                  placeholder="Format: Nama, Kendaraan, Telepon&#10;Contoh:&#10;Bro Aris, Civic Turbo, 08123456789&#10;Sist Amanda, Vespa Primavera, 08198765432"
+                  value={importText === "\n" ? "" : importText}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setImportText(val);
+                    const parsed = parsePastedText(val);
+                    setImportPreview(parsed);
+                  }}
+                  rows={4}
+                  className={`w-full bg-[#07080c] border border-white/10 rounded-xl p-3 text-[11px] text-white placeholder-zinc-650 font-mono focus:outline-none focus:${activeLivery.borderFocus}`}
+                />
+              </div>
+            )}
+
+            {/* Preview Section */}
+            {importPreview.length > 0 && (
+              <div className="space-y-2 border-t border-white/5 pt-3">
+                <div className="flex justify-between items-center text-[10px] uppercase font-mono font-black text-zinc-400">
+                  <span>Pratinjau Data ({importPreview.length})</span>
+                  <button
+                    type="button"
+                    onClick={() => setImportPreview([])}
+                    className="text-red-450 hover:text-red-400 font-bold"
+                  >
+                    Kosongkan
+                  </button>
+                </div>
+
+                <div className="max-h-[120px] overflow-y-auto space-y-1 pr-1 scrollbar-none">
+                  {importPreview.map((item, idx) => (
+                    <div 
+                      key={idx}
+                      className="flex items-center justify-between text-[10px] font-mono px-2.5 py-1.5 bg-white/5 border border-white/5 rounded-lg text-zinc-300"
+                    >
+                      <div className="truncate pr-2">
+                        <span className="text-zinc-500 font-bold mr-1">{idx + 1}.</span>
+                        <span className="text-white font-bold">{item.name}</span>
+                        <span className="text-zinc-600 mx-1">|</span>
+                        <span className="text-zinc-400">{item.vehicle}</span>
+                        <span className="text-zinc-600 mx-1">|</span>
+                        <span className="text-zinc-400">{item.phone}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...importPreview];
+                          updated.splice(idx, 1);
+                          setImportPreview(updated);
+                        }}
+                        className="text-red-400 hover:text-red-300 font-bold hover:scale-105 transition scale-95"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onImportMembers) {
+                      onImportMembers(importPreview);
+                      setIsImportOpen(false);
+                      setImportPreview([]);
+                      setImportText("");
+                    }
+                  }}
+                  className={`w-full bg-gradient-to-r ${activeLivery.btnGrad} text-white font-bold font-mono text-xs py-2.5 px-4 rounded-xl mt-1 transition active:scale-98 cursor-pointer shadow-lg ${activeLivery.shadowAccent}`}
+                >
+                  SELESAIKAN IMPORT MASSAL 🚀
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Slide down Add Member Panel */}
       <AnimatePresence>
@@ -355,10 +789,11 @@ export default function MembersView({
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
 
       {/* Member Cards Pipeline */}
-      <div className="space-y-2.5">
-        <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-500 font-mono flex items-center gap-2 px-1">
+      <div className="flex-1 overflow-y-auto scrollbar-none pb-20 space-y-2.5">
+        <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-500 font-mono flex items-center gap-2 px-1 sticky top-0 bg-[#0a0a0c] py-1.5 z-10">
           <Users className="w-4 h-4 text-zinc-500" />
           Daftar Anggota Arisan ({filteredMembers.length})
         </h3>
@@ -377,7 +812,14 @@ export default function MembersView({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.03 }}
-                  className="bg-white/5 border border-white/5 hover:border-white/10 rounded-xl p-3.5 flex items-center justify-between shadow-sm relative overflow-hidden"
+                  onClick={isSelectionMode && isAdmin ? () => toggleSelectMember(member.id) : undefined}
+                  className={`border rounded-xl p-3.5 flex items-center justify-between shadow-sm relative overflow-hidden transition-all duration-200 ${
+                    isSelectionMode && isAdmin
+                      ? selectedIds.includes(member.id)
+                        ? "bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/15 cursor-pointer active:scale-[0.99]"
+                        : "bg-white/5 border-white/5 hover:bg-white/10 cursor-pointer active:scale-[0.99]"
+                      : "bg-white/5 border-white/5 hover:border-white/10"
+                  }`}
                 >
                   {/* Visual glow on winner check */}
                   {member.wonRound !== null && (
@@ -385,6 +827,27 @@ export default function MembersView({
                   )}
 
                   <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-[11px] font-mono font-black text-zinc-500 w-5.5 text-center shrink-0">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+
+                    {/* Checkbox indicator in selection mode */}
+                    {isSelectionMode && isAdmin && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSelectMember(member.id);
+                        }}
+                        className="text-zinc-500 hover:text-white transition shrink-0 cursor-pointer p-0.5"
+                      >
+                        {selectedIds.includes(member.id) ? (
+                          <CheckSquare className="w-5 h-5 text-blue-400 fill-blue-500/10" />
+                        ) : (
+                          <Square className="w-5 h-5 text-zinc-600" />
+                        )}
+                      </button>
+                    )}
+
                     {/* Decorative Avatar with dynamic vehicle theme or uploaded photo */}
                     {member.photo ? (
                       <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 shrink-0 shadow-md">
@@ -471,17 +934,23 @@ export default function MembersView({
                     </div>
                   </div>
 
-                  {isAdmin && (
+                  {isAdmin && !isSelectionMode && (
                     <div className="flex items-center gap-1">
                       <button
-                        onClick={() => handleOpenEdit(member)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenEdit(member);
+                        }}
                         className="p-2 text-zinc-600 hover:text-blue-400 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/10 rounded-lg transition active:scale-90 cursor-pointer"
                         title="Edit data anggota"
                       >
                         <Pencil className="w-4.5 h-4.5" />
                       </button>
                       <button
-                        onClick={() => onDeleteMember(member.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteMember(member.id);
+                        }}
                         className="p-2 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/10 rounded-lg transition active:scale-90 cursor-pointer"
                         title="Keluarkan dari daftar"
                       >

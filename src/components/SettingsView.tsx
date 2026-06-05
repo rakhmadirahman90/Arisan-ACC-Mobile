@@ -334,7 +334,7 @@ export default function SettingsView({
           </p>
         </div>
 
-        {/* KOPDAR GATHERING SETTINGS */}
+        {/* ARISAN GATHERING SETTINGS */}
         <div className="space-y-3.5 border-t border-white/5 pt-3">
           <h4 className={`text-[9px] uppercase font-mono font-bold tracking-wider ${activeLivery.textAccent}`}>
             📍 Jadwal & Lokasi Kumpul Arisan
@@ -761,9 +761,7 @@ export default function SettingsView({
               toast.error("Hanya Admin yang dapat melakukan Reset Ulang Semua Data. Silakan login dari menu Akses Admin di bawah.");
               return;
             }
-            if (confirm("Apakah Anda yakin ingin menghapus semua data aplikasi arisan ini dan mereset ke pengaturan awal? Tindakan ini tidak dapat dibatalkan.")) {
-              onResetData();
-            }
+            onResetData();
           }}
           className={`py-2 px-4 rounded-xl text-xs font-bold font-mono transition inline-flex items-center gap-1.5 ${
             isAdmin ? "bg-red-500/10 hover:bg-red-500/20 text-[#f87171] hover:text-red-300 border border-red-500/20 active:scale-95 cursor-pointer" : "bg-red-500/5 text-red-400/30 border border-red-500/10 cursor-not-allowed"
@@ -779,7 +777,7 @@ export default function SettingsView({
           <Info className={`w-4 h-4 ${activeLivery.textAccent}`} /> ATURAN BALAP AUTO CLASER CLUB
         </h4>
         <ul className="list-disc pl-4 space-y-1 text-[11px] leading-relaxed">
-          <li>Arisan ditarik berkala per-bulan ssuai jadwal kopdar wajib claser.</li>
+          <li>Arisan ditarik berkala per-bulan ssuai jadwal arisan wajib claser.</li>
           <li>Setoran wajib lunas diselesaikan sebelum starter bendera hijau dikocok.</li>
           <li>Setiap pemenang hanya berhak memenangkan undian <span className={`font-bold ${activeLivery.textAccent}`}>1x kali</span> per-musim.</li>
           <li>Pemenang wajib melunasi tunggakan iuran putaran berikutnya hingga sisa musim balap selesai.</li>

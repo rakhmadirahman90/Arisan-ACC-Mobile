@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import Header from "./components/Header";
 import DashboardView from "./components/DashboardView";
 import MembersView from "./components/MembersView";
@@ -34,7 +35,10 @@ export default function App() {
     togglePayment,
     instantPayAll,
     confirmWinner,
-    resetData
+    resetData,
+    deleteAllMembers,
+    deleteMultipleMembers,
+    importMembers
   } = useArisanData();
 
   const [activeTab, setActiveTab] = useState<"dashboard" | "anggota" | "kocok" | "riwayat" | "setelan">("dashboard");
@@ -42,6 +46,20 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     const saved = localStorage.getItem("claser_is_admin");
     return saved === "true";
+  });
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmText: "YA, HAPUS",
+    onConfirm: () => {},
   });
 
   const [showIntro, setShowIntro] = useState<boolean>(() => {
@@ -65,9 +83,17 @@ export default function App() {
 
   const handleDeleteMember = (id: string) => {
     if (!isAdmin) return;
-    if (confirm("Keluarkan unit claser ini dari keanggotaan arisan?")) {
-      deleteMember(id);
-    }
+    const m = members.find((member) => member.id === id);
+    setConfirmModal({
+      isOpen: true,
+      title: "HAPUS ANGGOTA",
+      message: `Apakah Anda yakin ingin mengeluarkan "${m?.name || 'anggota ini'}" (${m?.vehicle || 'kendaraan'}) dari keanggotaan arisan? Semua riwayat kontribusi & status pembayaran terkait juga akan dihapus permanen.`,
+      confirmText: "YA, KELUARKAN ❌",
+      onConfirm: () => {
+        deleteMember(id);
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   const handleEditMember = (id: string, memberData: Partial<Member>) => {
@@ -95,8 +121,51 @@ export default function App() {
   };
 
   const handleResetData = () => {
-    resetData();
-    setActiveTab("dashboard");
+    if (!isAdmin) return;
+    setConfirmModal({
+      isOpen: true,
+      title: "RESET ULANG DATA",
+      message: "⚠️ PERINGATAN BENTENG: Apakah Anda yakin ingin mengosongkan riwayat, reset status pembayaran, dan memulai ulang musim arisan dari putaran awal? Tindakan ini bersifat absolut!",
+      confirmText: "YA, RESET TOTAL ⚠️",
+      onConfirm: () => {
+        resetData();
+        setActiveTab("dashboard");
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+      }
+    });
+  };
+
+  const handleDeleteAllMembers = () => {
+    if (!isAdmin) return;
+    setConfirmModal({
+      isOpen: true,
+      title: "HAPUS SELURUH ANGGOTA",
+      message: "🔥 PERINGATAN UTAMA: Apakah Anda yakin ingin menghapus SELURUH data anggota dan seluruh data pembayaran yang ada dari database? Tindakan ini tidak bisa dibatalkan!",
+      confirmText: "YA, HAPUS SEMUA 🔥",
+      onConfirm: () => {
+        deleteAllMembers();
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+      }
+    });
+  };
+
+  const handleDeleteMultipleMembers = (ids: string[]) => {
+    if (!isAdmin) return;
+    setConfirmModal({
+      isOpen: true,
+      title: "HAPUS DATA PILIHAN",
+      message: `Apakah Anda yakin ingin menghapus ${ids.length} anggota terpilih beserta seluruh data kontribusi & status pembayaran terkait dari database? Tindakan ini tidak bisa dibatalkan!`,
+      confirmText: `HAPUS ${ids.length} ANGGOTA ❌`,
+      onConfirm: () => {
+        deleteMultipleMembers(ids);
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+      }
+    });
+  };
+
+  const handleImportMembers = (newMembersList: Omit<Member, "id" | "joinDate" | "wonRound">[]) => {
+    if (!isAdmin) return;
+    importMembers(newMembersList);
   };
 
   // Backup file exporter
@@ -345,6 +414,9 @@ export default function App() {
                   onAddMember={handleAddMember}
                   onDeleteMember={handleDeleteMember}
                   onEditMember={handleEditMember}
+                  onDeleteAllMembers={handleDeleteAllMembers}
+                  onDeleteMultipleMembers={handleDeleteMultipleMembers}
+                  onImportMembers={handleImportMembers}
                   activeLivery={activeLivery}
                   payments={payments}
                   config={config}
@@ -455,6 +527,50 @@ export default function App() {
             <div className="w-full bg-[#0a0a0c] pb-2 pt-1 flex justify-center shrink-0 border-t border-white/5">
               <div className="w-24 h-1 bg-zinc-800 rounded-full"></div>
             </div>
+
+            {/* Custom Confirmation Modal */}
+            <AnimatePresence>
+              {confirmModal.isOpen && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]"
+                >
+                  <motion.div
+                    initial={{ scale: 0.9, y: 15 }}
+                    animate={{ scale: 1, y: 0 }}
+                    exit={{ scale: 0.9, y: 15 }}
+                    className="bg-[#0f121d] border border-white/10 rounded-2xl p-5 w-full max-w-[310px] space-y-4 shadow-2xl relative"
+                  >
+                    <div className="border-b border-white/5 pb-2 text-center">
+                      <h3 className="text-xs font-black uppercase text-red-400 font-mono tracking-wider">
+                        ⚠️ {confirmModal.title}
+                      </h3>
+                    </div>
+                    
+                    <p className="text-[11px] text-zinc-300 leading-relaxed text-center font-sans">
+                      {confirmModal.message}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[9px] font-bold">
+                      <button
+                        onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+                        className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 rounded-xl transition cursor-pointer"
+                      >
+                        BATAL ✖
+                      </button>
+                      <button
+                        onClick={confirmModal.onConfirm}
+                        className="w-full py-2.5 bg-red-650 hover:bg-red-500 text-white rounded-xl transition cursor-pointer shadow-lg shadow-red-900/40 animate-pulse"
+                      >
+                        {confirmModal.confirmText}
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
           </div>
         </div>

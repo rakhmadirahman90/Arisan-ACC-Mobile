@@ -197,7 +197,7 @@ export default function DashboardView({
         SABOT KOCOKAN SEKARANG 🏁
       </button>
 
-      {/* JADWAL KOPDAR & PERTEMUAN SELANJUTNYA */}
+      {/* JADWAL ARISAN & PERTEMUAN SELANJUTNYA */}
       <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl overflow-hidden shadow-lg font-sans">
         {/* Cover Image/Photo */}
         <div className="relative h-36 w-full">
@@ -217,7 +217,7 @@ export default function DashboardView({
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[8.5px] font-mono font-black uppercase tracking-wider bg-amber-500/30 text-amber-300 hover:bg-amber-500/50 hover:text-white border border-amber-500/50 shadow-lg shadow-black/60 transition active:scale-95 cursor-pointer leading-none"
               title="Navigasi ke Google Maps secara presisi"
             >
-              📍 AGENDA KOPDAR WAJIB
+              📍 AGENDA ARISAN WAJIB
             </a>
           </div>
 
@@ -394,7 +394,7 @@ export default function DashboardView({
         </div>
 
         {/* Member Grid Row */}
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 gap-2 max-h-[250px] overflow-y-auto scrollbar-none pr-0.5">
           {(() => {
             const listFiltered = members.filter((member) => {
               if (!searchQuery.trim()) return true;
@@ -414,7 +414,7 @@ export default function DashboardView({
               );
             }
 
-            return listFiltered.map((member) => {
+            return listFiltered.map((member, index) => {
               const isPaid = paidMemberIds.includes(member.id);
               const wonThisOrPrior = member.wonRound !== null;
               
@@ -427,7 +427,10 @@ export default function DashboardView({
                       : "bg-white/5 border-white/5 hover:border-white/10"
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-[10px] font-mono font-black text-zinc-500 w-5 text-center shrink-0">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
                     {member.photo ? (
                       <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10 shrink-0 shadow-md">
                         <img src={member.photo} alt={member.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />

@@ -47,7 +47,7 @@ export const exportToExcel = (data: ExportData) => {
 
   // --- SHEET 1: RINGKASAN ---
   const ringkasanData = [
-    { Kategori: "NAMA ARISAN", Nilai: "ARISAN KOPDAR CLASER" },
+    { Kategori: "NAMA ARISAN", Nilai: "ARISAN CLASER" },
     { Kategori: "Tanggal Cetak Laporan", Nilai: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) },
     { Kategori: "", Nilai: "" },
     { Kategori: "PARAMATER ARISAN", Nilai: "" },
@@ -184,7 +184,7 @@ export const exportToPDF = (data: ExportData) => {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
-  doc.text("ARISAN KOPDAR CLASER", 14, 16);
+  doc.text("ARISAN CLASER", 14, 16);
 
   // Subtitle
   doc.setTextColor(161, 161, 170); // zinc-400
@@ -267,7 +267,7 @@ export const exportToPDF = (data: ExportData) => {
   doc.setTextColor(24, 24, 27);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
-  doc.text("II. TRANSPARANSI DATA ANGGOTA KOPDAR", 14, section2StartY);
+  doc.text("II. TRANSPARANSI DATA ANGGOTA ARISAN", 14, section2StartY);
 
   const memberHeaders = [["No", "Nama Pembalap", "Unit Kendaraan", "No. Telepon", "Won Round", "Status R" + config.currentRound]];
   const memberRows = members.map((m, idx) => {
@@ -362,7 +362,7 @@ export const exportToPDF = (data: ExportData) => {
     // Page count
     doc.text(`Halaman ${i} dari ${totalPages}`, 196, 287, { align: "right" });
     // Copyright and validation notice
-    doc.text("Dokumen resmi dicetak secara mandiri oleh Sistem Arisan Kopdar Claser.", 14, 287);
+    doc.text("Dokumen resmi dicetak secara mandiri oleh Sistem Arisan Claser.", 14, 287);
   }
 
   doc.save(`Laporan_Rekap_Arisan_Claser_${new Date().toISOString().slice(0, 10)}.pdf`);

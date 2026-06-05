@@ -56,7 +56,7 @@ app.post("/api/checkout", async (req, res) => {
   const { memberId, memberName, round, amount, phone } = req.body;
 
   // Generate a unique order ID for this transaction attempt
-  const orderId = `KOPDAR-R${round}-${memberId}-${Date.now()}`;
+  const orderId = `ARISAN-R${round}-${memberId}-${Date.now()}`;
 
   if (snap) {
     try {
@@ -70,7 +70,7 @@ app.post("/api/checkout", async (req, res) => {
             id: `R${round}`,
             price: amount,
             quantity: 1,
-            name: `Iuran Arisan Kopdar Putaran ${round}`,
+            name: `Iuran Arisan Putaran ${round}`,
             merchant_name: "Auto Claser Club",
           }
         ],
@@ -122,9 +122,9 @@ app.get("/api/checkout/status/:orderId", async (req, res) => {
 
 // Default Advisor tips for fallback
 const FALLBACK_TIPS = [
-  "💡 **Investasikan untuk Perawatan Kendaraan**: Gunakan Rp 500.000,- untuk melakukan penggantian oli mesin berkualitas tinggi (seperti Shell Helix Ultra atau Motul) agar performa mobil/motor Anda tetap handal saat agenda kopdar berikutnya.",
+  "💡 **Investasikan untuk Perawatan Kendaraan**: Gunakan Rp 500.000,- untuk melakukan penggantian oli mesin berkualitas tinggi (seperti Shell Helix Ultra atau Motul) agar performa mobil/motor Anda tetap handal saat agenda arisan berikutnya.",
   "📈 **Alokasi Tabungan Sehat (50/30/20)**: Sisihkan Rp 650.000,- (50%) langsung masuk ke rekening tabungan darurat atau reksa dana pasar uang untuk investasi jangka pendek yang stabil.",
-  "☕ **Treatment Traktir Kopi Kopdar**: Sisihkan Rp 150.000,- untuk mentraktir camilan atau kopi bagi rekan-rekan Auto Claser Club saat nongkrong di Paddock Kopi Sentul. Ini mempererat persaudaraan antar-anggota!",
+  "☕ **Treatment Traktir Kopi Arisan**: Sisihkan Rp 150.000,- untuk mentraktir camilan atau kopi bagi rekan-rekan Auto Claser Club saat nongkrong di Paddock Kopi Sentul. Ini mempererat persaudaraan antar-anggota!",
   "🛠️ **Aksesoris Utilitas Esensial**: Beli aksesoris fungsional seperti charger mobil nirkabel, dashcam berkualitas medium, atau car wash kit premium agar kendaraan Anda selalu berkilau.",
   "🛡️ **Sisa Dana**: Simpan sisanya sebesar Rp 100.000,- untuk kas cadangan bensin luar kota atau e-Toll untuk turing Claser berikutnya."
 ];
@@ -152,7 +152,7 @@ ${customPrompt ? `- Pertanyaan khusus user: "${customPrompt}"` : ""}
 Berikan panduan pengelolaan keuangan arisan yang bijak, profesional, santai, dan penuh semangat otomotif dalam Bahasa Indonesia.
 Ketentuan Output:
 1. Sapa pemenang dengan ramah, ucapkan selamat berpesta kocokan.
-2. Buatkan rincian alokasi dana rupiah yang spesifik dari total Rp ${resolvedPrize.toLocaleString("id-ID")} (misalnya untuk tabungan, perawatan otomotif / variasi rincian oli/aksesoris sesuai dengan tipe kendaraannya jika memungkinkan, serta traktiran kas/kopi untuk kopdar club).
+2. Buatkan rincian alokasi dana rupiah yang spesifik dari total Rp ${resolvedPrize.toLocaleString("id-ID")} (misalnya untuk tabungan, perawatan otomotif / variasi rincian oli/aksesoris sesuai dengan tipe kendaraannya jika memungkinkan, serta traktiran kas/kopi untuk arisan club).
 3. Berikan saran hobi/modifikasi yang sehat (visual, utilitas, atau fungsional seperti coating, dashcam berkualitas, pembersih interior) dan ingatkan agar tidak menghabiskan seluruh uang arisan hanya untuk hobi sekali pakai.
 4. Jawab dalam format Markdown yang indah, ringkas, dan scannable (gunakan bullet points, bold text). Hindari penjelasan bertele-tele. Maksimal 270 kata agar pas dengan layar mobile.
 `;
@@ -189,7 +189,7 @@ Berikut adalah rancangan anggaran bijak **Claser Offline Template Advisor** untu
 2. **🚗 Perawatan Spesifik (${resolvedVehicle}) (35% - Rp ${(resolvedPrize * 0.35).toLocaleString("id-ID")})**
    Gunakan dana ini untuk perawatan berkala kendaraan Anda. Contoh: Tune-up, ganti oli mesin sport premium, poles detailing interior, atau upgrade lampu LED utama demi keselamatan berkendara malam hari saat turing.
    
-3. **☕ Solidaritas Kopdar Claser Club (15% - Rp ${(resolvedPrize * 0.15).toLocaleString("id-ID")})**
+3. **☕ Solidaritas Arisan Claser Club (15% - Rp ${(resolvedPrize * 0.15).toLocaleString("id-ID")})**
    Sisihkan dana kecil untuk keseruan bersama. Traktir beberapa porsi aneka gorengan atau es kopi susu untuk teman-teman Auto Claser Club saat nongkrong malam minggu nanti!
 
 *Ingat, anggota club yang bijak selalu menjaga keseimbangan antara dompet sehat dan knalpot sehat! Gaspol dengan aman!*`;

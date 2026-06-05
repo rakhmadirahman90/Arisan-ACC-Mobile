@@ -47,6 +47,7 @@ export default function HistoryView({
   const [subTab, setSubTab] = useState<"silsilah" | "keuangan" | "ai-advisor">("silsilah");
   const [searchQuery, setSearchQuery] = useState("");
   const [historySearchQuery, setHistorySearchQuery] = useState("");
+  const [advisorSearchQuery, setAdvisorSearchQuery] = useState("");
 
   const memberList = members || [];
   const activeConfig = config || { contributionAmount: 60000, currentRound: 11, totalRounds: 26, currentWinner: "" };
@@ -320,7 +321,7 @@ export default function HistoryView({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto max-h-[62vh] px-5 pb-24 pt-3 scrollbar-none font-sans">
+      <div className="flex-1 overflow-hidden relative px-5 pb-4 pt-3 font-sans">
         <AnimatePresence mode="wait">
           {subTab === "silsilah" && (
             <motion.div
@@ -329,7 +330,7 @@ export default function HistoryView({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               transition={{ duration: 0.2 }}
-              className="space-y-4"
+              className="h-full flex flex-col overflow-hidden space-y-4 text-left pb-16"
             >
               {/* Visual Aggregation Stats Banner */}
               <div className="grid grid-cols-2 gap-3">
@@ -359,7 +360,7 @@ export default function HistoryView({
               </div>
 
               {/* History Timeline block */}
-              <div className="space-y-3">
+              <div className="space-y-3 shrink-0">
                 <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono flex items-center gap-2 px-1">
                   <History className="w-4 h-4 text-zinc-500" />
                   Data Arisan Pemenang
@@ -386,8 +387,9 @@ export default function HistoryView({
                     </button>
                   )}
                 </div>
+              </div>
 
-                <div className="space-y-3 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/5">
+              <div className="flex-1 overflow-y-auto scrollbar-none pr-0.5 space-y-3 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/5 pb-16">
                   {filteredHistory.length > 0 ? (
                      filteredHistory.map((item, index) => (
                       <div
@@ -404,7 +406,7 @@ export default function HistoryView({
                           <div className="min-w-0 text-left">
                             <div className="flex items-center gap-1">
                               <h4 className="text-xs font-extrabold text-zinc-100 truncate">
-                                {item.winnerName}
+                                {index + 1}. {item.winnerName}
                               </h4>
                               <Award className={`w-3 h-3 ${activeLivery.textAccent} shrink-0`} />
                             </div>
@@ -441,7 +443,6 @@ export default function HistoryView({
                     </div>
                   )}
                 </div>
-              </div>
             </motion.div>
           )}
 
@@ -452,7 +453,7 @@ export default function HistoryView({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
-              className="space-y-4 text-left"
+              className="h-full flex flex-col space-y-4 text-left overflow-y-auto scrollbar-none pb-24"
             >
               
               {/* COMPREHENSIVE CASH GRADIENT HERO */}
@@ -494,7 +495,7 @@ export default function HistoryView({
                     Unduh Rekap Laporan Lengkap
                   </h3>
                   <p className="text-[9px] text-zinc-400 leading-tight">
-                    Cetak pembukuan arisan format resmi PDF atau Excel siap dibagikan ke grup Whatsapp Kopdar.
+                    Cetak pembukuan arisan format resmi PDF atau Excel siap dibagikan ke grup Whatsapp Arisan.
                   </p>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
@@ -590,7 +591,7 @@ export default function HistoryView({
                   <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-zinc-500" />
                   <input
                     type="text"
-                    placeholder="Cari nama pembalap kopdar..."
+                    placeholder="Cari nama pembalap arisan..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full bg-white/5 text-[10.5px] border border-white/10 rounded-xl pl-9 pr-4 py-2 text-[#f4f4f5] focus:outline-none focus:border-emerald-500/50 placeholder:text-zinc-650"
@@ -609,14 +610,19 @@ export default function HistoryView({
 
                     <div className="grid grid-cols-1 gap-1.5 max-h-[160px] overflow-y-auto scrollbar-none pr-0.5">
                       {filteredUnpaid.length > 0 ? (
-                        filteredUnpaid.map((m) => (
+                        filteredUnpaid.map((m, index) => (
                           <div 
                             key={m.id}
                             className="bg-[#ffe4e6]/5 border border-red-500/10 rounded-xl p-2 flex justify-between items-center gap-2 hover:bg-[#ffe4e6]/10 transition"
                           >
-                            <div className="min-w-0">
-                              <p className="text-[10px] font-bold text-zinc-200 truncate">{m.name}</p>
-                              <p className="text-[7.5px] text-zinc-500 font-mono truncate">{m.vehicle}</p>
+                            <div className="min-w-0 flex items-center gap-2">
+                              <span className="text-[9px] font-mono font-black text-[#f43f5e] shrink-0 w-4">
+                                {index + 1}.
+                              </span>
+                              <div className="min-w-0">
+                                <p className="text-[10px] font-bold text-zinc-200 truncate">{m.name}</p>
+                                <p className="text-[7.5px] text-zinc-500 font-mono truncate">{m.vehicle}</p>
+                              </div>
                             </div>
                             <span className="text-[9px] text-[#f43f5e] font-mono font-bold shrink-0">
                               {formatRupiah(activeConfig.contributionAmount)}
@@ -640,16 +646,21 @@ export default function HistoryView({
 
                     <div className="grid grid-cols-1 gap-1.5 max-h-[160px] overflow-y-auto scrollbar-none pr-0.5">
                       {filteredPaid.length > 0 ? (
-                        filteredPaid.map((m) => {
+                        filteredPaid.map((m, index) => {
                           const pObj = currentRoundPayments.find((p) => p.memberId === m.id);
                           return (
                             <div 
                               key={m.id}
                               className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-2 flex justify-between items-center gap-2 hover:bg-emerald-500/10 transition"
                             >
-                              <div className="min-w-0">
-                                <p className="text-[10px] font-bold text-zinc-200 truncate">{m.name}</p>
-                                <p className="text-[7.5px] text-zinc-500 font-mono truncate">📅 {pObj?.paidAt || "01 Jun 2026"}</p>
+                              <div className="min-w-0 flex items-center gap-2">
+                                <span className="text-[9px] font-mono font-black text-emerald-400 shrink-0 w-4">
+                                  {index + 1}.
+                                </span>
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-bold text-zinc-200 truncate">{m.name}</p>
+                                  <p className="text-[7.5px] text-zinc-500 font-mono truncate">📅 {pObj?.paidAt || "01 Jun 2026"}</p>
+                                </div>
                               </div>
                               <div className="text-right shrink-0">
                                 <span className="text-[9px] text-emerald-400 font-mono font-extrabold block">
@@ -707,7 +718,7 @@ export default function HistoryView({
                   </div>
 
                   {/* Historical Rounds Ledgers */}
-                  {history.map((h) => {
+                  {history.map((h, index) => {
                     const rArisan = h.prizeAmount; // total prize which is participants * 50k
                     const rConsum = h.participantsCount * consumptionShare; // 26 members * 10k
                     return (
@@ -717,7 +728,7 @@ export default function HistoryView({
                       >
                         <div className="flex justify-between items-center">
                           <span className="text-[9px] font-mono font-black text-zinc-400">
-                            PUTARAN {h.round} • {h.winnerName} 👑
+                            NO. {index + 1} | PUTARAN {h.round} • {h.winnerName} 👑
                           </span>
                           <span className="text-[8px] text-emerald-400 font-bold font-mono bg-emerald-500/10 border border-emerald-500/15 px-1 py-0.5 rounded uppercase">
                             100% LUNAS
@@ -764,7 +775,7 @@ export default function HistoryView({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
-              className="space-y-4 text-left"
+              className="h-full flex flex-col space-y-4 text-left overflow-y-auto scrollbar-none pb-24"
             >
               {/* BRAND HEADER CARD */}
               <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-950 via-[#0d1222] to-zinc-950 border border-white/10 relative overflow-hidden shadow-lg">
@@ -789,17 +800,30 @@ export default function HistoryView({
                   🔧 Parameter Konsultasi Keuangan
                 </p>
 
-                {/* Dropdown Driver */}
+                {/* Dropdown Driver via Search */}
                 <div className="space-y-1">
-                  <label className="text-[8px] text-zinc-400 font-mono uppercase block">Pilih Pembalap Berjaya (Nama Naik)</label>
+                  <label className="text-[8px] text-zinc-400 font-mono uppercase block">Cari & Pilih Pembalap Berjaya</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-zinc-500" />
+                    <input
+                      type="text"
+                      placeholder="Cari nama pembalap..."
+                      value={advisorSearchQuery}
+                      onChange={(e) => setAdvisorSearchQuery(e.target.value)}
+                      className="w-full bg-black/60 text-[10.5px] text-white border border-white/10 rounded-xl pl-9 pr-3 py-2 mb-2 focus:outline-none focus:border-indigo-500 placeholder:text-zinc-650"
+                    />
+                  </div>
                   <select
                     value={selectedDriverId}
                     onChange={(e) => setSelectedDriverId(e.target.value)}
                     className="w-full bg-black/60 text-[10.5px] text-white border border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500"
                   >
-                    {memberList.map((m) => (
+                    {memberList
+                      .map((m, index) => ({ m, index }))
+                      .filter(({ m }) => !advisorSearchQuery.trim() || m.name.toLowerCase().includes(advisorSearchQuery.toLowerCase()))
+                      .map(({ m, index }) => (
                       <option key={m.id} value={m.id}>
-                        👤 {m.name} ({m.wonRound ? `Round ${m.wonRound} Winner` : `Belum Naik`})
+                        👤 {String(index + 1).padStart(2, '0')}. {m.name} ({m.wonRound ? `Round ${m.wonRound} Winner` : `Belum Naik`})
                       </option>
                     ))}
                   </select>

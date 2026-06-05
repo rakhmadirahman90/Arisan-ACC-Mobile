@@ -16,7 +16,7 @@ export interface ArisanConfig {
   nextDrawDate: string;
   livery?: "blue" | "green" | "orange" | "red" | "lime";
   raffleActiveTime?: string; // Datetime ISO string or locale datetime string when raffle unlocks
-  // KOPDAR / MEETUP GATHERING
+  // ARISAN / MEETUP GATHERING
   meetupLocationName?: string;
   meetupAddress?: string;
   meetupMapQuery?: string;

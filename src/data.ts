@@ -244,7 +244,7 @@ export const INITIAL_CONFIG: ArisanConfig = {
   nextDrawDate: "2026-06-15",
   livery: "blue",
   raffleActiveTime: "2026-06-15T19:30",
-  // KOPDAR SETTINGS PRESET
+  // ARISAN SETTINGS PRESET
   meetupLocationName: "Paddock Kopi Sentul",
   meetupAddress: "Jl. Sirkuit Sentul No.88, Sentul, Kec. Babakan Madang, Kabupaten Bogor, Jawa Barat 16810",
   meetupMapQuery: "-6.534289,106.879432",
