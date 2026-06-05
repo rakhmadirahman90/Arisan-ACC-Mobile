@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArisanHistory, Member, ArisanConfig, PaymentStatus } from "../types";
 import { formatRupiah } from "../data";
@@ -137,6 +137,15 @@ export default function HistoryView({
   const [advisorSource, setAdvisorSource] = useState<string>("");
   const [advisorError, setAdvisorError] = useState<string | null>(null);
   const [loadingQuoteIndex, setLoadingQuoteIndex] = useState(0);
+  const advisorResponseRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (advisorResponse || advisorError) {
+      setTimeout(() => {
+        advisorResponseRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+    }
+  }, [advisorResponse, advisorError]);
 
   const LOADING_QUOTES = [
     "Menyetel kompresi keuangan...",
@@ -225,8 +234,8 @@ export default function HistoryView({
           }
 
           // Bullet points
-          if (trimmed.startsWith("-") || trimmed.startsWith("*")) {
-            const bulletText = trimmed.substring(1).trim();
+          if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+            const bulletText = trimmed.substring(2).trim();
             return (
               <div key={idx} className="flex gap-2 items-start pl-1 my-1">
                 <span className="text-emerald-400 mt-1">✦</span>
@@ -250,7 +259,7 @@ export default function HistoryView({
             );
           }
 
-          return <p key={idx} className="text-[10px] pl-0.5 leading-snug">{parseBoldText(trimmed)}</p>;
+          return <p key={idx} className="text-[10px] pl-0.5 leading-snug break-words whitespace-pre-wrap">{parseBoldText(trimmed)}</p>;
         })}
       </div>
     );
@@ -457,7 +466,7 @@ export default function HistoryView({
             >
               
               {/* COMPREHENSIVE CASH GRADIENT HERO */}
-              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-zinc-950 via-[#0a1122] to-zinc-950 border border-white/15 relative overflow-hidden shadow-lg">
+              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-zinc-950 via-[#0a1122] to-zinc-950 border border-white/15 relative overflow-hidden shadow-lg shrink-0">
                 <div className="absolute -right-3 -top-3 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <p className="text-[8.5px] font-mono text-zinc-500 uppercase tracking-widest font-bold">
                   💰 Total Rekapitulasi Dana Masuk
@@ -485,7 +494,7 @@ export default function HistoryView({
               </div>
 
               {/* EXPORT ACTION DECK */}
-              <div className="p-3.5 bg-white/[0.02] border border-white/10 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 relative overflow-hidden">
+              <div className="p-3.5 bg-white/[0.02] border border-white/10 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 relative overflow-hidden shrink-0">
                 <div className="absolute right-0 bottom-0 opacity-[0.02]">
                   <FileText className="w-24 h-24 text-zinc-100" />
                 </div>
@@ -775,10 +784,10 @@ export default function HistoryView({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
-              className="h-full flex flex-col space-y-4 text-left overflow-y-auto scrollbar-none pb-24"
+              className="h-full flex flex-col space-y-4 text-left overflow-y-auto pb-48"
             >
               {/* BRAND HEADER CARD */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-950 via-[#0d1222] to-zinc-950 border border-white/10 relative overflow-hidden shadow-lg">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-950 via-[#0d1222] to-zinc-950 border border-white/10 relative overflow-hidden shadow-lg shrink-0">
                 <div className="absolute right-0 top-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`p-1.5 rounded-lg bg-gradient-to-r ${activeLivery.btnGrad} text-white`}>
@@ -795,7 +804,7 @@ export default function HistoryView({
               </div>
 
               {/* INPUT FORM DECK */}
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3 shrink-0">
                 <p className="text-[8.5px] font-mono text-zinc-500 uppercase tracking-widest font-bold">
                   🔧 Parameter Konsultasi Keuangan
                 </p>
@@ -940,10 +949,11 @@ export default function HistoryView({
               <AnimatePresence mode="wait">
                 {(advisorResponse || advisorError) && (
                   <motion.div
+                    ref={advisorResponseRef}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="bg-zinc-950 border border-white/10 rounded-2xl p-4 space-y-3 shadow-[0_4px_30px_rgba(0,0,0,0.5)] relative overflow-hidden"
+                    className="bg-zinc-950 border border-white/10 rounded-2xl p-4 space-y-3 shadow-[0_4px_30px_rgba(0,0,0,0.5)] relative overflow-hidden shrink-0"
                   >
                     {/* Ambient visual badge on source */}
                     <div className="flex justify-between items-center border-b border-white/5 pb-2">
