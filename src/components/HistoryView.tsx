@@ -194,11 +194,68 @@ export default function HistoryView({
         setAdvisorResponse(data.text);
         setAdvisorSource(data.source);
       } else {
-        setAdvisorError("Gagal mengambil data advisor dari server. Skenario template luring gagal.");
+        throw new Error("Gagal memanggil endpoint AI backend, beralih ke generator lokal...");
       }
     } catch (err) {
-      console.error("Client Advisor query error:", err);
-      setAdvisorError("Koneksi gagal atau rute server terinterupsi.");
+      console.warn("Client Advisor server query failed, generating offline/Vercel fallback...", err);
+      
+      const val40 = prizeValue * 0.40;
+      const val35 = prizeValue * 0.35;
+      const val25 = prizeValue * 0.25;
+
+      const vehicleName = driver.vehicle || "Motor/Mobil";
+
+      let advisorAdvice = "";
+      if (aiCategory === "umum" || aiCategory === "custom") {
+        advisorAdvice = `### 🏁 Halo Bro ${driver.name}! Selamat atas kemenangan kocokan arisan putaran ini!
+        
+Sebutan kehormatan bagi pemenang arisan Auto Claser Club! Dana segar sejumlah **${formatRupiah(prizeValue)}** cair untuk merawat **${vehicleName}** milikmu. 
+
+Sebagai *Claser AI Financial Advisor (Luring)*, ini formula alokasi dana rupiah yang bijak, profesional, dan hoki:
+
+*   **40% - Tabungan Proteksi (Amankan ${formatRupiah(val40)}):** Simpan langsung untuk dana darurat pribadi atau servis berkala berikutnya agar dompet tetap sehat.
+*   **35% - Perawatan Prima & Fungsi ${vehicleName} (Rekomendasi ${formatRupiah(val35)}):**
+    *   *Suku Cadang Berkala:* Ganti oli mesin berkualitas tinggi (seperti Shell Helix/Ultra/SPX) + filter oli dan cek tekanan ban (~Rp 300.000).
+    *   *Perawatan Visual:* Beli cairan wax, pembersih jamur kaca, atau detailing bodi agar kinclong saat kopdar (~Rp 150.000).
+*   **25% - Kas & Traktiran Kopi Club (Traktir Srawung ${formatRupiah(val25)}):** Bagikan kebahagiaan dengan membayar sisa uang kas club atau traktir kopi tipis-tipis saat nongkrong bareng anggota arisan.
+
+### 🛠️ Tips Modifikasi Utilitas Sehat
+1. **Fokus pada Fungsi & Nilai Guna:** Sebaiknya hindari membeli aksesoris variasi murah yang sekali pakai. Gunakan anggaran untuk meningkatkan kenyamanan berkendara seperti dashcam resolusi tinggi atau peredam pintu mobil.
+2. **Rawat Sebelum Rusak:** Mencegah selalu lebih hemat daripada memperbaiki kerusakan vital di jalan raya.`;
+      } else if (aiCategory === "otomotif") {
+        advisorAdvice = `### 🏁 Halo Bro ${driver.name}! Selamat atas kemenangan kocokan arisan putaran ini!
+
+Dana segar sejumlah **${formatRupiah(prizeValue)}** untuk **${vehicleName}** siap digulirkan! Mari kita buat rancangan peningkatan dan modifikasi yang sehat serta bernilai guna tinggi:
+
+*   **50% - Upgrade Fungsi & Estetika (Alokasi ${formatRupiah(prizeValue * 0.50)}):**
+    *   *Pencahayaan & Visibilitas:* Ganti bohlam halogen kusam dengan LED berkualitas tinggi atau pasang dashcam dual-channel demi keamanan berkendara (~Rp 450.000).
+    *   *Interior Detailing:* Lakukan AC deep cleaning atau bodi coating ringan mandiri agar cat luar selalu terlindung (~Rp 200.000).
+*   **30% - Tabungan Suku Cadang (Simpan ${formatRupiah(prizeValue * 0.30)}):** Masukkan ke pos tabungan khusus kebutuhan mutlak kendaraan di masa depan.
+*   **20% - Traktiran Solidaritas Club (${formatRupiah(prizeValue * 0.20)}):** Traktir kopi persahabatan saat agenda kopdar bergulir.
+
+### 🛠️ Rekomendasi Khusus ${vehicleName}
+Pastikan modifikasi tidak menggugurkan garansi kelistrikan pabrikan dan selalu utamakan safety riding/driving. Hobi otomotif yang sehat adalah hobi yang beriringan dengan dompet aman!`;
+      } else {
+        advisorAdvice = `### 🏁 Halo Bro ${driver.name}! Selamat atas kemenangan kocokan arisan putaran ini!
+
+Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** ini sangat pas untuk mempererat persahabatan di Auto Claser Club dan menjaga performa harian **${vehicleName}**:
+
+*   **50% - Kas Kopi & Solidaritas Club (${formatRupiah(prizeValue * 0.50)}):** Dedikasikan sukarela untuk menyewa panggung, memesan snack martabak, atau menyediakan kopi tubruk bagi semua anggota klub saat arisan berikutnya diputar.
+*   **30% - Rawat Mandiri Unit ${vehicleName} (${formatRupiah(prizeValue * 0.30)}):** Belilah kanebo premium, kain microfiber tebal, interior protectant spray, dan cairan pencuci khusus otomotif agar unit selalu wangi dan segar.
+*   **20% - Tabungan Darurat (${formatRupiah(prizeValue * 0.20)}):** Uang darurat sekiranya ada kendala mogok atau tambal ban di jalan tol.
+
+### 🤝 Pesan Solidaritas
+"Guyub rukun, srawung kekancan selamanya!" Persahabatan dengan klub otomotif adalah aset terbesar, namun rawat juga kendaraan harian Anda agar selalu aman dan nyaman!`;
+      }
+
+      if (aiCategory === "custom" && customPrompt.trim()) {
+        advisorAdvice += `\n\n### 💬 Menjawab Tanya Khusus Anda:
+> "${customPrompt}"
+*   **Saran Finansial Langsung:** Untuk pertanyaan spesifik Anda seputar alokasi ke reksa dana / pemenuhan hobi, laksanakan aturan hemat: alokasikan 50% untuk kebutuhan yang Anda tanyakan, 30% amankan untuk tabungan, dan sisanya 20% dapat digunakan untuk rekreasi atau hobi santai.*`;
+      }
+
+      setAdvisorResponse(advisorAdvice);
+      setAdvisorSource("Luring (Vercel Fallback)");
     } finally {
       setAdvisorLoading(false);
     }
@@ -330,7 +387,7 @@ export default function HistoryView({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-hidden relative px-5 pb-4 pt-3 font-sans">
+      <div className="flex-1 overflow-hidden relative font-sans">
         <AnimatePresence mode="wait">
           {subTab === "silsilah" && (
             <motion.div
@@ -339,7 +396,7 @@ export default function HistoryView({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               transition={{ duration: 0.2 }}
-              className="h-full flex flex-col overflow-hidden space-y-4 text-left pb-16"
+              className="absolute inset-0 px-5 pb-4 pt-3 flex flex-col overflow-hidden space-y-4 text-left"
             >
               {/* Visual Aggregation Stats Banner */}
               <div className="grid grid-cols-2 gap-3">
@@ -462,7 +519,7 @@ export default function HistoryView({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
-              className="h-full flex flex-col space-y-4 text-left overflow-y-auto scrollbar-none pb-24"
+              className="absolute inset-0 px-5 pb-4 pt-3 flex flex-col space-y-4 text-left overflow-y-auto scrollbar-none pb-24"
             >
               
               {/* COMPREHENSIVE CASH GRADIENT HERO */}
@@ -784,7 +841,7 @@ export default function HistoryView({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
-              className="h-full flex flex-col space-y-4 text-left overflow-y-auto pb-48"
+              className="absolute inset-0 px-5 pb-6 pt-3 flex flex-col space-y-4 text-left overflow-y-auto pb-32"
             >
               {/* BRAND HEADER CARD */}
               <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-950 via-[#0d1222] to-zinc-950 border border-white/10 relative overflow-hidden shadow-lg shrink-0">
