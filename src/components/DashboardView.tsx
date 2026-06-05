@@ -3,6 +3,15 @@ import { motion, AnimatePresence } from "motion/react";
 import toast from "react-hot-toast";
 import { Member, ArisanConfig, PaymentStatus, ArisanHistory } from "../types";
 import { formatRupiah } from "../data";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from "recharts";
 import { 
   Trophy, 
   DollarSign, 
@@ -120,6 +129,58 @@ export default function DashboardView({
     ? (config.meetupMapQuery.includes("embed") ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.meetupAddress || "Tempat Kumpul Arisan")}` : config.meetupMapQuery)
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.meetupMapQuery || config.meetupAddress || "")}`;
 
+  // Color configuration mapping based on app active livery
+  const colorMap: Record<string, string> = {
+    blue: "#3b82f6",
+    green: "#10b981",
+    orange: "#f97316",
+    red: "#ef4444",
+    lime: "#84cc16",
+  };
+  const primaryColor = colorMap[config.livery || "blue"] || "#3b82f6";
+
+  // Generate contribution trend data for recharts
+  const chartData = Array.from({ length: config.totalRounds || 12 }, (_, i) => {
+    const roundNum = i + 1;
+    const roundPayments = payments.filter((p) => p.round === roundNum);
+    const paidInRound = roundPayments.filter((p) => p.isPaid).length;
+    const totalCollected = paidInRound * config.contributionAmount;
+    const targetPot = members.length * config.contributionAmount;
+    
+    return {
+      round: `P${roundNum}`,
+      collected: totalCollected,
+      target: targetPot,
+      unpaid: Math.max(0, targetPot - totalCollected),
+    };
+  });
+
+  const totalActualCollected = payments.filter(p => p.isPaid).length * config.contributionAmount;
+  const totalTargetPossible = members.length * (config.totalRounds || 12) * config.contributionAmount;
+  const totalOutstandingAmount = Math.max(0, totalTargetPossible - totalActualCollected);
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-[#0f121d]/95 backdrop-blur-md border border-white/10 p-2.5 rounded-xl text-left text-[9.5px] font-mono shadow-xl space-y-1">
+          <p className="font-bold text-white uppercase text-[8px] tracking-wider mb-1">Putaran {label.replace("P", "")}</p>
+          <p className="text-emerald-400">
+            Lunas: <span className="font-extrabold">{formatRupiah(payload[0].value)}</span>
+          </p>
+          {payload[1] && (
+            <p className="text-rose-450">
+              Sisa Tagihan: <span className="font-extrabold">{formatRupiah(payload[1].value)}</span>
+            </p>
+          )}
+          <p className="text-zinc-500 border-t border-white/5 pt-1 mt-1 font-sans">
+            Total Target: {formatRupiah(payload[0].payload.target)}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -129,7 +190,7 @@ export default function DashboardView({
       className="p-5 space-y-5 overflow-y-auto max-h-[70vh] pb-24 scrollbar-none"
     >
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-4 shadow-xl">
+      <div className={`relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-4 shadow-xl hover-glow-${config.livery || "blue"}`}>
         <div className="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4">
           <DollarSign className={`w-40 h-40 ${activeLivery.textAccent}`} />
         </div>
@@ -163,8 +224,8 @@ export default function DashboardView({
 
       {/* Main Stats Bento Grid */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center gap-3 shadow-md">
-          <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400 border border-emerald-500/20">
+        <div className={`bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center gap-3 shadow-md hover-glow-${config.livery || "blue"}`}>
+          <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-450 border border-emerald-500/20">
             <CircleCheck className="w-4 h-4" />
           </div>
           <div>
@@ -175,7 +236,7 @@ export default function DashboardView({
           </div>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center gap-3 shadow-md">
+        <div className={`bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center gap-3 shadow-md hover-glow-${config.livery || "blue"}`}>
           <div className={`p-2 ${activeLivery.bgPill} rounded-lg ${activeLivery.textAccent} border ${activeLivery.borderAccent}`}>
             <Hourglass className="w-4 h-4" />
           </div>
@@ -197,8 +258,79 @@ export default function DashboardView({
         SABOT KOCOKAN SEKARANG 🏁
       </button>
 
+      {/* MONTLHY CONTRIBUTION TREND CARD */}
+      <div className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 shadow-lg text-left space-y-3 hover-glow-${config.livery || "blue"}`}>
+        <div className="flex items-center justify-between border-b border-white/5 pb-1.5">
+          <div className="flex items-center gap-2">
+            <TrendingUp className={`w-4 h-4 ${activeLivery.textAccent}`} />
+            <h3 className="text-xs font-black uppercase text-white font-mono tracking-wider">
+              Tren Progres Kas & Kontribusi
+            </h3>
+          </div>
+          <span className="text-[8.5px] font-mono font-black text-zinc-400 bg-white/5 px-2 py-0.5 rounded border border-white/5 uppercase">
+            R1 - R{config.totalRounds}
+          </span>
+        </div>
+
+        <div className="text-[9px] text-zinc-400 font-sans leading-relaxed">
+          Statistik visual akumulasi iuran lunas vs sisa tagihan per putaran. Target sirkulasi iuran per putaran adalah <strong className="text-zinc-200">{formatRupiah(members.length * config.contributionAmount)}</strong>.
+        </div>
+
+        <div className="w-full h-[150px] pr-2 mt-1">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              margin={{ top: 10, right: 0, left: -24, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorCollected" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={primaryColor} stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor={primaryColor} stopOpacity={0.15}/>
+                </linearGradient>
+                <linearGradient id="colorUnpaid" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0.05}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+              <XAxis 
+                dataKey="round" 
+                stroke="#52525b" 
+                fontSize={8} 
+                tickLine={false}
+                axisLine={false}
+                fontFamily="JetBrains Mono, monospace"
+              />
+              <YAxis 
+                stroke="#52525b" 
+                fontSize={8} 
+                tickLine={false}
+                axisLine={false}
+                fontFamily="JetBrains Mono, monospace"
+                tickFormatter={(val) => `${val / 1000}k`}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+              <Bar dataKey="collected" name="Lunas" fill="url(#colorCollected)" radius={[3, 3, 0, 0]} stackId="a" />
+              <Bar dataKey="unpaid" name="Sisa Tagihan" fill="url(#colorUnpaid)" radius={[3, 3, 0, 0]} stackId="a" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Legend / Metrics */}
+        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/5 font-mono text-[8.5px]">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="w-1.5 h-1.5 rounded-xs shrink-0" style={{ backgroundColor: primaryColor }} />
+            <span className="text-zinc-400 truncate">Total Lunas: <span className="font-bold text-emerald-400">{formatRupiah(totalActualCollected)}</span></span>
+          </div>
+          <div className="flex items-center gap-1.5 min-w-0 font-mono">
+            <span className="w-1.5 h-1.5 rounded-xs bg-red-500/50 shrink-0" />
+            <span className="text-zinc-400 truncate">Sisa Piutang: <span className="font-bold text-zinc-300">{formatRupiah(totalOutstandingAmount)}</span></span>
+          </div>
+        </div>
+      </div>
+
       {/* JADWAL ARISAN & PERTEMUAN SELANJUTNYA */}
-      <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl overflow-hidden shadow-lg font-sans">
+      <div className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl overflow-hidden shadow-lg font-sans hover-glow-${config.livery || "blue"}`}>
         {/* Cover Image/Photo */}
         <div className="relative h-36 w-full">
           <img 

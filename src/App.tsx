@@ -41,7 +41,18 @@ export default function App() {
     importMembers
   } = useArisanData();
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "anggota" | "kocok" | "riwayat" | "setelan">("dashboard");
+  const [activeTab, setActiveTabRaw] = useState<"dashboard" | "anggota" | "kocok" | "riwayat" | "setelan">("dashboard");
+  const [slideDirection, setSlideDirection] = useState<number>(1);
+
+  const TABS = ["dashboard", "anggota", "kocok", "riwayat", "setelan"] as const;
+  const setActiveTab = (newTab: "dashboard" | "anggota" | "kocok" | "riwayat" | "setelan") => {
+    const currentIndex = TABS.indexOf(activeTab);
+    const newIndex = TABS.indexOf(newTab);
+    if (currentIndex !== newIndex) {
+      setSlideDirection(newIndex > currentIndex ? 1 : -1);
+    }
+    setActiveTabRaw(newTab);
+  };
 
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     const saved = localStorage.getItem("claser_is_admin");
@@ -192,6 +203,87 @@ export default function App() {
       return false;
     }
   };
+
+  // Automatic payment reminder on app initialization
+  useEffect(() => {
+    if (loading || !config || !config.nextDrawDate || !members.length || !payments.length) return;
+
+    // Check if we already showed it in this session to prevent repeated prompts
+    const sessionKey = "payment_reminder_has_shown";
+    if (sessionStorage.getItem(sessionKey) === "true") return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const dueDate = new Date(config.nextDrawDate);
+    dueDate.setHours(0, 0, 0, 0);
+
+    // Calculate difference in days
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // Find unpaid members for the current round
+    const totalMembersCount = members.length;
+    const paidCount = payments.filter((p) => p.round === config.currentRound && p.isPaid).length;
+    const unpaidCount = totalMembersCount - paidCount;
+
+    // Show reminder if the meeting date is within 14 days and there are unpaid members
+    if (diffDays <= 14 && unpaidCount > 0) {
+      const nextDateStr = dueDate.toLocaleDateString("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      });
+
+      const daySummaryText = diffDays === 0 
+        ? "Hari ini!" 
+        : diffDays < 0 
+          ? "Sudah lewat!" 
+          : `${diffDays} hari lagi`;
+
+      toast((t) => (
+        <div className="flex flex-col gap-2 text-zinc-100 p-1 w-full max-w-[340px]">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
+            <strong className="text-[10px] font-mono font-black uppercase tracking-wider text-amber-300">
+              ⚠️ PENGINGAT PEMBAYARAN JATUH TEMPO
+            </strong>
+          </div>
+          <p className="text-[10px] font-sans text-zinc-300 leading-relaxed">
+            Kopdar & Kocokan Arisan <span className="font-extrabold text-white">Putaran {config.currentRound}</span> dijadwalkan pada <span className="font-semibold text-amber-300">{nextDateStr}</span> ({daySummaryText}).
+          </p>
+          <div className="flex items-center justify-between border-t border-white/5 pt-2 mt-1 gap-4">
+            <span className="text-[9px] font-mono text-zinc-400 shrink-0">
+               Belum Bayar: <strong className="text-red-400 font-extrabold">{unpaidCount} Pembalap</strong>
+            </span>
+            <button 
+              onClick={() => {
+                setActiveTab("riwayat");
+                toast.dismiss(t.id);
+              }}
+              className="px-2.5 py-1 rounded-lg bg-amber-400 text-black text-[9px] hover:bg-amber-300 active:scale-95 transition font-mono font-black truncate cursor-pointer shrink-0"
+            >
+              LIHAT REKAP
+            </button>
+          </div>
+        </div>
+      ), {
+        duration: 8000,
+        id: "payment-due-reminder",
+        style: {
+          background: "linear-gradient(135deg, #0e1726 0%, #030712 100%)",
+          border: "1px solid rgba(245, 158, 11, 0.25)",
+          boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 0 15px rgba(245, 158, 11, 0.15)",
+          padding: "12px",
+          borderRadius: "16px",
+          maxWidth: "360px"
+        }
+      });
+
+      sessionStorage.setItem(sessionKey, "true");
+    }
+  }, [loading, config, members, payments]);
 
 
   // Dynamic side panel statistics calculations
@@ -395,73 +487,84 @@ export default function App() {
             <div className="flex-1 overflow-hidden relative bg-[#0a0a0c]">
               <div className="absolute inset-0 bg-neutral-950/20 pointer-events-none z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent to-neutral-950/40"></div>
               
-              {activeTab === "dashboard" && (
-                <DashboardView
-                  members={members}
-                  config={config}
-                  payments={payments}
-                  history={history}
-                  onNavigateToKocokan={() => setActiveTab("kocok")}
-                  onTogglePayment={handleTogglePayment}
-                  activeLivery={activeLivery}
-                  isAdmin={isAdmin}
-                />
-              )}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, x: slideDirection > 0 ? 30 : -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: slideDirection > 0 ? -30 : 30 }}
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  className="absolute inset-0 flex flex-col overflow-hidden"
+                >
+                  {activeTab === "dashboard" && (
+                    <DashboardView
+                      members={members}
+                      config={config}
+                      payments={payments}
+                      history={history}
+                      onNavigateToKocokan={() => setActiveTab("kocok")}
+                      onTogglePayment={handleTogglePayment}
+                      activeLivery={activeLivery}
+                      isAdmin={isAdmin}
+                    />
+                  )}
 
-              {activeTab === "anggota" && (
-                <MembersView
-                  members={members}
-                  onAddMember={handleAddMember}
-                  onDeleteMember={handleDeleteMember}
-                  onEditMember={handleEditMember}
-                  onDeleteAllMembers={handleDeleteAllMembers}
-                  onDeleteMultipleMembers={handleDeleteMultipleMembers}
-                  onImportMembers={handleImportMembers}
-                  activeLivery={activeLivery}
-                  payments={payments}
-                  config={config}
-                  isAdmin={isAdmin}
-                />
-              )}
+                  {activeTab === "anggota" && (
+                    <MembersView
+                      members={members}
+                      onAddMember={handleAddMember}
+                      onDeleteMember={handleDeleteMember}
+                      onEditMember={handleEditMember}
+                      onDeleteAllMembers={handleDeleteAllMembers}
+                      onDeleteMultipleMembers={handleDeleteMultipleMembers}
+                      onImportMembers={handleImportMembers}
+                      activeLivery={activeLivery}
+                      payments={payments}
+                      config={config}
+                      isAdmin={isAdmin}
+                    />
+                  )}
 
-              {activeTab === "kocok" && (
-                <RaffleView
-                  members={members}
-                  config={config}
-                  payments={payments}
-                  onConfirmWinner={handleConfirmWinner}
-                  onNavigateToDashboard={() => setActiveTab("dashboard")}
-                  onInstantPayAll={handleInstantPayAll}
-                  activeLivery={activeLivery}
-                  isAdmin={isAdmin}
-                  onSetAdmin={handleSetAdmin}
-                  onUpdateConfig={handleUpdateConfig}
-                />
-              )}
+                  {activeTab === "kocok" && (
+                    <RaffleView
+                      members={members}
+                      config={config}
+                      payments={payments}
+                      onConfirmWinner={handleConfirmWinner}
+                      onNavigateToDashboard={() => setActiveTab("dashboard")}
+                      onInstantPayAll={handleInstantPayAll}
+                      activeLivery={activeLivery}
+                      isAdmin={isAdmin}
+                      onSetAdmin={handleSetAdmin}
+                      onUpdateConfig={handleUpdateConfig}
+                    />
+                  )}
 
-              {activeTab === "riwayat" && (
-                <HistoryView 
-                  history={history} 
-                  activeLivery={activeLivery} 
-                  members={members}
-                  config={config}
-                  payments={payments}
-                />
-              )}
+                  {activeTab === "riwayat" && (
+                    <HistoryView 
+                      history={history} 
+                      activeLivery={activeLivery} 
+                      members={members}
+                      config={config}
+                      payments={payments}
+                    />
+                  )}
 
-              {activeTab === "setelan" && (
-                <SettingsView
-                  config={config}
-                  onUpdateConfig={handleUpdateConfig}
-                  onResetData={handleResetData}
-                  onExportData={handleExportData}
-                  onImportData={handleImportData}
-                  activeLivery={activeLivery}
-                  isAdmin={isAdmin}
-                  onSetAdmin={handleSetAdmin}
-                  onReplayIntro={() => setShowIntro(true)}
-                />
-              )}
+                  {activeTab === "setelan" && (
+                    <SettingsView
+                      config={config}
+                      onUpdateConfig={handleUpdateConfig}
+                      onResetData={handleResetData}
+                      onExportData={handleExportData}
+                      onImportData={handleImportData}
+                      activeLivery={activeLivery}
+                      isAdmin={isAdmin}
+                      onSetAdmin={handleSetAdmin}
+                      onReplayIntro={() => setShowIntro(true)}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </div>
 
             {/* Bottom Custom Navigation Dock Bar */}
