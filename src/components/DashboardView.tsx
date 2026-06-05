@@ -187,10 +187,10 @@ export default function DashboardView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="p-5 space-y-5 overflow-y-auto max-h-[70vh] pb-24 scrollbar-none"
+      className="p-5 overflow-y-auto max-h-[70vh] pb-24 scrollbar-none grid grid-cols-1 md:grid-cols-2 gap-4 items-start text-left"
     >
       {/* Header Banner */}
-      <div className={`relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-4 shadow-xl hover-glow-${config.livery || "blue"}`}>
+      <div className={`relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-4 shadow-xl hover-glow-${config.livery || "blue"} md:col-span-2`}>
         <div className="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4">
           <DollarSign className={`w-40 h-40 ${activeLivery.textAccent}`} />
         </div>
@@ -223,7 +223,7 @@ export default function DashboardView({
       </div>
 
       {/* Main Stats Bento Grid */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 md:col-span-1">
         <div className={`bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center gap-3 shadow-md hover-glow-${config.livery || "blue"}`}>
           <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-450 border border-emerald-500/20">
             <CircleCheck className="w-4 h-4" />
@@ -252,14 +252,14 @@ export default function DashboardView({
       {/* Kocokan Quick Call-to-Action */}
       <button 
         onClick={onNavigateToKocokan}
-        className={`w-full bg-gradient-to-r ${activeLivery.btnGrad} text-white py-3 px-4 rounded-xl font-bold font-mono tracking-tight flex items-center justify-center gap-2 transition active:scale-[0.98] ${activeLivery.shadowAccent} border ${activeLivery.borderAccent} cursor-pointer`}
+        className={`w-full bg-gradient-to-r ${activeLivery.btnGrad} text-white py-3 px-4 rounded-xl font-bold font-mono tracking-tight flex items-center justify-center gap-2 transition active:scale-[0.98] ${activeLivery.shadowAccent} border ${activeLivery.borderAccent} cursor-pointer md:col-span-1`}
       >
         <Play className="w-3.5 h-3.5 fill-current" />
         SABOT KOCOKAN SEKARANG 🏁
       </button>
 
       {/* MONTLHY CONTRIBUTION TREND CARD */}
-      <div className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 shadow-lg text-left space-y-3 hover-glow-${config.livery || "blue"}`}>
+      <div className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 shadow-lg text-left space-y-3 hover-glow-${config.livery || "blue"} md:col-span-1 md:row-span-2`}>
         <div className="flex items-center justify-between border-b border-white/5 pb-1.5">
           <div className="flex items-center gap-2">
             <TrendingUp className={`w-4 h-4 ${activeLivery.textAccent}`} />
@@ -330,7 +330,7 @@ export default function DashboardView({
       </div>
 
       {/* JADWAL ARISAN & PERTEMUAN SELANJUTNYA */}
-      <div className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl overflow-hidden shadow-lg font-sans hover-glow-${config.livery || "blue"}`}>
+      <div className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl overflow-hidden shadow-lg font-sans hover-glow-${config.livery || "blue"} md:col-span-1`}>
         {/* Cover Image/Photo */}
         <div className="relative h-36 w-full">
           <img 
@@ -420,7 +420,7 @@ export default function DashboardView({
       </div>
 
       {/* Real-time Payment Gateway Quick Portal Banner */}
-      <div className="bg-gradient-to-r from-zinc-950 via-[#0e1629] to-zinc-950 border border-white/10 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-lg relative overflow-hidden">
+      <div className="bg-gradient-to-r from-zinc-950 via-[#0e1629] to-zinc-950 border border-white/10 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-lg relative overflow-hidden md:col-span-2">
         <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/5 rounded-full blur-2xl"></div>
         <div className="space-y-1 text-left min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
@@ -456,7 +456,7 @@ export default function DashboardView({
 
       {/* Last Winner Trophy */}
       {latestWinner ? (
-        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3.5 relative overflow-hidden shadow-lg">
+        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3.5 relative overflow-hidden shadow-lg md:col-span-1">
           {/* subtle gold ambient glow */}
           <div className={`absolute right-0 top-0 w-24 h-24 ${activeLivery.ambientFlare1} rounded-full blur-2xl`}></div>
           

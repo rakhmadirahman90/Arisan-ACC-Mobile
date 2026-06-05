@@ -182,10 +182,10 @@ export default function SettingsView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="p-5 space-y-5 overflow-y-auto max-h-[70vh] pb-24 scrollbar-none"
+      className="p-5 overflow-y-auto max-h-[70vh] pb-24 scrollbar-none grid grid-cols-1 md:grid-cols-2 gap-4 items-start text-left"
     >
       {/* Admin Mobile Authentication Access */}
-      <div className="bg-gradient-to-r from-zinc-950 via-[#0d0f19] to-zinc-950 border border-white/10 rounded-2xl p-4 space-y-3 font-sans">
+      <div className="bg-gradient-to-r from-zinc-950 via-[#0d0f19] to-zinc-950 border border-white/10 rounded-2xl p-4 space-y-3 font-sans md:col-span-1 hover-glow">
         <div className="flex justify-between items-center pb-2 border-b border-white/5">
           <h3 className="text-[10px] font-black uppercase font-mono text-zinc-100 flex items-center gap-1.5">
             {isAdmin ? <Unlock className="w-3.5 h-3.5 text-emerald-400" /> : <Lock className="w-3.5 h-3.5 text-zinc-400" />}
@@ -252,7 +252,7 @@ export default function SettingsView({
       </div>
 
       {/* Configuration Section */}
-      <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 space-y-4 font-sans">
+      <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 space-y-4 font-sans md:col-span-1 hover-glow">
         <div className="flex justify-between items-center pb-1 border-b border-white/5">
           <h3 className="text-[11px] font-black uppercase font-mono text-zinc-100 flex items-center gap-2">
             <Settings className={`w-4 h-4 ${activeLivery.textAccent}`} />
@@ -684,7 +684,7 @@ export default function SettingsView({
       </div>
 
       {/* Backup and Sync Utility */}
-      <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 space-y-3 font-sans">
+      <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 space-y-3 font-sans md:col-span-1 hover-glow">
         <h3 className="text-[11px] font-black uppercase font-mono text-zinc-100 flex items-center gap-2 pb-1 border-b border-white/5">
           <HardDriveDownload className={`w-4 h-4 ${activeLivery.textAccent}`} />
           Backup & Sinkronisasi Eksternal
@@ -746,7 +746,7 @@ export default function SettingsView({
       </div>
 
       {/* Wipe/Reset Block */}
-      <div className="bg-red-500/5 border border-red-550/15 rounded-2xl p-4 space-y-3.5 text-center font-sans">
+      <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 space-y-3.5 text-center font-sans md:col-span-1 hover-glow">
         <h3 className="text-xs font-black uppercase font-mono text-rose-500 flex items-center justify-center gap-1.5">
           <RotateCcw className="w-4 h-4 text-red-500" /> WIPE OUT PADDOCK DANGER ZONE
         </h3>
@@ -772,7 +772,7 @@ export default function SettingsView({
       </div>
 
       {/* Rules Board Info */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 font-sans text-xs text-zinc-400 space-y-3">
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 font-sans text-xs text-zinc-400 space-y-3 md:col-span-2 hover-glow">
         <h4 className={`font-extrabold text-zinc-205 uppercase flex items-center gap-1 font-mono text-[10px] ${activeLivery.textAccent}`}>
           <Info className={`w-4 h-4 ${activeLivery.textAccent}`} /> ATURAN BALAP AUTO CLASER CLUB
         </h4>

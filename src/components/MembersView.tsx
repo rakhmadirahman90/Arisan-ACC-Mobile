@@ -339,9 +339,9 @@ export default function MembersView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="h-full flex flex-col p-5 overflow-hidden text-left"
+      className="h-full overflow-hidden p-5 flex flex-col md:grid md:grid-cols-12 md:gap-5 text-left"
     >
-      <div className="shrink-0 space-y-3 mb-3">
+      <div className="md:col-span-5 flex flex-col space-y-3 mb-3 shrink-0 h-full max-h-[35vh] md:max-h-full overflow-y-auto scrollbar-none pb-2">
         {/* Search Bar + Admin Actions Toolbar */}
       <div className="flex flex-col gap-2">
         <div className="flex gap-2">
@@ -791,8 +791,8 @@ export default function MembersView({
       </AnimatePresence>
       </div>
 
-      {/* Member Cards Pipeline */}
-      <div className="flex-1 overflow-y-auto scrollbar-none pb-20 space-y-2.5">
+      {/* Member Cards Pipeline - Right Side */}
+      <div className="flex-1 md:col-span-7 overflow-y-auto scrollbar-none pb-20 space-y-2.5 max-h-[40vh] md:max-h-full">
         <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-500 font-mono flex items-center gap-2 px-1 sticky top-0 bg-[#0a0a0c] py-1.5 z-10">
           <Users className="w-4 h-4 text-zinc-500" />
           Daftar Anggota Arisan ({filteredMembers.length})

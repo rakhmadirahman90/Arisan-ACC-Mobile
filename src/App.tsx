@@ -351,7 +351,7 @@ export default function App() {
       <div className={`absolute bottom-10 right-10 w-96 h-96 ${activeLivery.ambientFlare2} rounded-full blur-3xl pointer-events-none`}></div>
 
       {/* Main Container embracing sidebars + phone */}
-      <div className="flex flex-row items-center justify-center gap-8 lg:gap-12 w-full max-w-5xl">
+      <div className="flex flex-row items-center justify-center gap-6 lg:gap-8 w-full max-w-7xl transition-all duration-500">
         
         {/* LEFT DOCK SIDEBAR (Hidden on mobile/tablet) */}
         <div className="hidden lg:flex flex-col gap-5 w-64 shrink-0 transition-all duration-300">
@@ -473,10 +473,18 @@ export default function App() {
         </div>
 
         {/* CENTER MOBILE SIMULATOR */}
-        <div className="w-[360px] h-[740px] bg-[#0a0a0c] rounded-[48px] border-[10px] border-[#1a1a1e] shadow-[0_10px_70px_rgba(0,0,0,0.85)] overflow-hidden relative flex flex-col justify-between select-none shrink-0 hover:border-[#222228] transition-colors duration-300">
+        <div 
+          className={`h-[740px] bg-[#0a0a0c] rounded-[48px] border-[10px] border-[#1a1a1e] shadow-[0_10px_70px_rgba(0,0,0,0.85)] overflow-hidden relative flex flex-col justify-between select-none shrink-0 hover:border-[#222228] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            activeTab === "dashboard" ? "w-[360px] md:w-[780px]" :
+            activeTab === "anggota" ? "w-[360px] md:w-[840px]" :
+            activeTab === "kocok" ? "w-[360px] md:w-[760px]" :
+            activeTab === "riwayat" ? "w-[360px] md:w-[860px]" :
+            "w-[360px] md:w-[800px]" // setelan
+          }`}
+        >
           
           {/* Device camera lens cover decoration */}
-          <div className="absolute left-[34%] top-5 w-3 h-3 bg-zinc-900 border border-zinc-800 rounded-full z-50"></div>
+          <div className="absolute left-1/2 -translate-x-1/2 top-5 w-3 h-3 bg-zinc-900 border border-zinc-800 rounded-full z-50"></div>
           
           <div className="flex-1 flex flex-col justify-between overflow-hidden relative">
             
