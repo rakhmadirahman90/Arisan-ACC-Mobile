@@ -62,22 +62,57 @@ export default function Header() {
               Arisan Portal
             </h1>
           </div>
-          <div className="shrink-0 flex items-center bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 p-1.5 px-3 rounded-xl border border-white/10 shadow-lg select-none">
-            {/* ACC Mini Styled Vector Logo matching user branding (maximized layout with extra bottom safety margins) */}
-            <svg viewBox="0 0 165 58" className="w-[96px] h-[34px] shrink-0 drop-shadow-[0_0_8px_rgba(59,130,246,0.45)]" xmlns="http://www.w3.org/2000/svg">
+          <div className="shrink-0 flex items-center bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 p-[5px] px-2.5 rounded-lg border border-white/10 shadow-lg select-none">
+            {/* ACC Mini Styled Vector Logo - Compact badge size */}
+            <svg viewBox="0 0 180 75" className="w-[84px] h-[35px] shrink-0 drop-shadow-[0_0_6px_rgba(59,130,246,0.35)]" xmlns="http://www.w3.org/2000/svg">
               {/* Car upper contour line */}
-              <path d="M 5,22 Q 35,13 65,9 Q 85,6 115,11 Q 135,15 155,22" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round"/>
-              <path d="M 60,15 C 75,12 90,12 110,15" fill="none" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" opacity="0.8" />
-              {/* Styled alphabets "ACC" - repositioned for perfect bottom clearance */}
-              <text x="12" y="44" fill="#2563eb" fontSize="30" fontWeight="900" fontStyle="italic" fontFamily="Impact, 'Arial Black', sans-serif">A</text>
-              <text x="37" y="44" fill="#2563eb" fontSize="30" fontWeight="900" fontStyle="italic" fontFamily="Impact, 'Arial Black', sans-serif">C</text>
-              <text x="62" y="44" fill="#ffffff" fontSize="30" fontWeight="900" fontStyle="italic" fontFamily="Impact, 'Arial Black', sans-serif">C</text>
-              {/* plus shape on far right */}
-              <g transform="translate(112, 32) scale(0.18)">
-                <rect x="0" y="-15" width="15" height="40" fill="#ffffff" />
-                <rect x="-12" y="-2" width="40" height="15" fill="#ffffff" />
-                <rect x="18" y="-18" width="10" height="10" fill="#ffffff" opacity="0.6"/>
+              <path d="M 5,26 Q 30,13 60,9 Q 85,4 115,9 Q 135,13 165,22" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round"/>
+              <path d="M 55,16 Q 80,10 115,15" fill="none" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" opacity="0.8" />
+              
+              {/* Styled alphabets "ACC" - heavy bold, italicized, layered 3D outlines */}
+              {/* 'A' */}
+              <text x="14" y="50" fill="#000000" stroke="#000000" strokeWidth="3" strokeLinejoin="round" fontSize="28" fontWeight="900" fontStyle="italic" fontFamily="Impact, 'Arial Black', sans-serif">A</text>
+              <text x="12" y="48" fill="#1e40af" stroke="#2563eb" strokeWidth="1.2" strokeLinejoin="round" fontSize="28" fontWeight="900" fontStyle="italic" fontFamily="Impact, 'Arial Black', sans-serif">A</text>
+              
+              {/* First 'C' */}
+              <text x="39" y="50" fill="#000000" stroke="#000000" strokeWidth="3" strokeLinejoin="round" fontSize="28" fontWeight="900" fontStyle="italic" fontFamily="Impact, 'Arial Black', sans-serif">C</text>
+              <text x="37" y="48" fill="#1e40af" stroke="#2563eb" strokeWidth="1.2" strokeLinejoin="round" fontSize="28" fontWeight="900" fontStyle="italic" fontFamily="Impact, 'Arial Black', sans-serif">C</text>
+              
+              {/* Second 'C' */}
+              <text x="64" y="50" fill="#000000" stroke="#000000" strokeWidth="3" strokeLinejoin="round" fontSize="28" fontWeight="900" fontStyle="italic" fontFamily="Impact, 'Arial Black', sans-serif">C</text>
+              <text x="62" y="48" fill="#ef4444" stroke="#ff8f8f" strokeWidth="1" strokeLinejoin="round" fontSize="28" fontWeight="900" fontStyle="italic" fontFamily="Impact, 'Arial Black', sans-serif">C</text>
+
+              {/* Perfectly rendering the modular tech pixel cross on the right of the logo */}
+              <g transform="translate(108, 12) scale(0.6)" fill="#ffffff">
+                {/* Horizontal blocks */}
+                <rect x="15" y="14" width="8" height="8" />
+                <rect x="24" y="14" width="8" height="8" />
+                <rect x="33" y="14" width="8" height="8" />
+                <rect x="42" y="14" width="8" height="8" />
+                {/* Vertical blocks */}
+                <rect x="24" y="5" width="8" height="8" />
+                <rect x="24" y="23" width="8" height="8" />
+                <rect x="24" y="32" width="8" height="8" />
+                {/* Floating auxiliary squares */}
+                <rect x="42" y="5" width="6" height="6" opacity="0.8" />
+                <rect x="15" y="23" width="6" height="6" opacity="0.6" />
+                <rect x="6" y="15" width="6" height="6" opacity="0.4" />
               </g>
+
+              {/* Left wing needle */}
+              <path d="M 8,63.5 L 44,63.5 L 44,62.5 Z" fill="#ffffff" />
+              
+              {/* Bottom text: "Auto Claser Club" with exact color schemes */}
+              <text x="94" y="66" textAnchor="middle" fontSize="7.5" fontWeight="900" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" letterSpacing="0.2">
+                <tspan fill="#2563eb">A</tspan><tspan fill="#ffffff">uto</tspan>
+                <tspan fill="#ffffff" xmlSpace="preserve"> </tspan>
+                <tspan fill="#2563eb">C</tspan><tspan fill="#ffffff">laser</tspan>
+                <tspan fill="#ffffff" xmlSpace="preserve"> </tspan>
+                <tspan fill="#ef4444">Club</tspan>
+              </text>
+              
+              {/* Right wing needle */}
+              <path d="M 172,63.5 L 136,63.5 L 136,62.5 Z" fill="#ffffff" />
             </svg>
           </div>
         </div>
