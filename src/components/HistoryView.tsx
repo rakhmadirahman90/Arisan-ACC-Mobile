@@ -25,7 +25,14 @@ import {
   Loader2,
   Wrench,
   Coins,
-  MessageSquare
+  MessageSquare,
+  Pencil,
+  Trash2,
+  ArrowLeft,
+  X,
+  CreditCard,
+  Clock,
+  Car
 } from "lucide-react";
 
 interface HistoryViewProps {
@@ -34,6 +41,9 @@ interface HistoryViewProps {
   members?: Member[];
   config?: ArisanConfig;
   payments?: PaymentStatus[];
+  onEditHistory?: (id: string, data: Partial<ArisanHistory>) => void;
+  onDeleteHistory?: (id: string) => void;
+  isAdmin?: boolean;
 }
 
 export default function HistoryView({ 
@@ -41,10 +51,15 @@ export default function HistoryView({
   activeLivery,
   members,
   config,
-  payments
+  payments,
+  onEditHistory,
+  onDeleteHistory,
+  isAdmin
 }: HistoryViewProps) {
   // Tabs: "silsilah" (Original Winner list), "keuangan" (New Financial Recap), "ai-advisor" (New AI Financial Advisor)
   const [subTab, setSubTab] = useState<"silsilah" | "keuangan" | "ai-advisor">("silsilah");
+  const [selectedHistoryForDetail, setSelectedHistoryForDetail] = useState<ArisanHistory | null>(null);
+  const [selectedMemberDetail, setSelectedMemberDetail] = useState<Member | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [historySearchQuery, setHistorySearchQuery] = useState("");
   const [advisorSearchQuery, setAdvisorSearchQuery] = useState("");
@@ -388,6 +403,239 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden relative font-sans">
+        {/* Member Detail Modal Overlay (For Checklist) */}
+        <AnimatePresence>
+          {selectedMemberDetail && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="w-full max-w-sm bg-[#0d0f17] border border-white/20 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+              >
+                 {/* Header Profile Section */}
+                 <div className={`relative p-6 bg-gradient-to-r ${activeLivery.btnGrad} text-white shrink-0`}>
+                  <button 
+                    onClick={() => setSelectedMemberDetail(null)}
+                    className="absolute right-4 top-4 p-1.5 bg-black/20 hover:bg-black/40 rounded-full text-white/80 transition cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  
+                  <div className="flex items-center gap-4 mt-2">
+                    {selectedMemberDetail.photo ? (
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden border border-white/30 shadow-xl">
+                        <img src={selectedMemberDetail.photo} alt={selectedMemberDetail.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      </div>
+                    ) : (
+                      <div className={`w-16 h-16 rounded-2xl ${selectedMemberDetail.avatarColor} border border-white/30 flex items-center justify-center text-2xl font-black font-mono shadow-xl`}>
+                        {selectedMemberDetail.name.substring(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <span className="inline-block px-2 py-0.5 bg-white/20 rounded-full text-[9px] font-mono font-black border border-white/30 uppercase tracking-widest mb-1.5 leading-none">
+                        DETAILS PEMBALAP
+                      </span>
+                      <h3 className="text-xl font-black truncate leading-tight">
+                        {selectedMemberDetail.name}
+                      </h3>
+                      <p className="text-xs text-white/80 font-medium truncate flex items-center gap-1.5 mt-0.5">
+                        <Car className="w-3.5 h-3.5" /> {selectedMemberDetail.vehicle}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-5 space-y-5 scrollbar-none text-left">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl space-y-1">
+                      <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-wider">Telepon</span>
+                      <p className="text-xs font-mono font-bold text-zinc-200 truncate">{selectedMemberDetail.phone}</p>
+                    </div>
+                    <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl space-y-1">
+                      <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-wider">Terdaftar</span>
+                      <p className="text-xs font-mono font-bold text-zinc-200">{selectedMemberDetail.joinDate}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center gap-3">
+                    {selectedMemberDetail.wonRound !== null ? (
+                      <>
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                          <Trophy className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-widest font-mono">STATUS MENANG</h4>
+                          <p className="text-xs text-white font-bold mt-0.5">Menang di Putaran {selectedMemberDetail.wonRound}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-10 h-10 rounded-xl bg-zinc-800/50 border border-white/5 flex items-center justify-center text-zinc-500">
+                          <Clock className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest font-mono">STATUS MENANG</h4>
+                          <p className="text-xs text-zinc-500 font-bold mt-0.5">Masih antrean lintasan</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-zinc-900/40 rounded-2xl border border-white/5 space-y-3">
+                    <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">Kontribusi Saat Ini</h4>
+                    <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl">
+                      <span className="text-xs text-zinc-300">Putaran {activeConfig.currentRound}</span>
+                      {members.some(m => m.id === selectedMemberDetail.id && paidMembersInCurrentRound.some(pm => pm.id === m.id)) ? (
+                        <span className="text-[9px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded border border-emerald-500/20">LUNAS</span>
+                      ) : (
+                        <span className="text-[9px] font-black text-rose-400 bg-rose-400/10 px-2 py-0.5 rounded border border-rose-500/20">BELUM</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-zinc-900/80 border-t border-white/5">
+                  <button 
+                    onClick={() => setSelectedMemberDetail(null)}
+                    className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold font-mono text-zinc-400 transition"
+                  >
+                    TUTUP
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* History Item Detail Modal Overlay */}
+        <AnimatePresence>
+          {selectedHistoryForDetail && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="w-full max-w-sm bg-[#0d0f17] border border-white/20 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+              >
+                {/* Header Profile Section */}
+                <div className={`relative p-6 bg-gradient-to-r ${activeLivery.btnGrad} text-white shrink-0`}>
+                  <button 
+                    onClick={() => setSelectedHistoryForDetail(null)}
+                    className="absolute right-4 top-4 p-1.5 bg-black/20 hover:bg-black/40 rounded-full text-white/80 transition cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  
+                  <div className="flex items-center gap-4 mt-2">
+                    <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl font-black font-mono shadow-xl">
+                      R{selectedHistoryForDetail.round}
+                    </div>
+                    <div className="min-w-0">
+                      <span className="inline-block px-2 py-0.5 bg-white/20 rounded-full text-[9px] font-mono font-black border border-white/30 uppercase tracking-widest mb-1.5 leading-none">
+                        PEMENANG RESMI
+                      </span>
+                      <h3 className="text-xl font-black truncate leading-tight">
+                        {selectedHistoryForDetail.winnerName}
+                      </h3>
+                      <p className="text-xs text-white/80 font-medium truncate flex items-center gap-1.5 mt-0.5">
+                        <Car className="w-3.5 h-3.5" /> {selectedHistoryForDetail.winnerVehicle}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Detail Content */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-none text-left">
+                  {/* Jackpot Prize Block */}
+                  <div className="bg-white/5 border border-white/10 p-5 rounded-2xl relative overflow-hidden group">
+                    <div className="absolute right-0 bottom-0 opacity-[0.03] -rotate-12 translate-x-2 translate-y-2">
+                      <DollarSign className="w-24 h-24 text-white" />
+                    </div>
+                    <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-widest">Jackpot Terbayar</span>
+                    <div className={`text-2xl font-black ${activeLivery.textAccent} font-mono mt-1`}>
+                      {formatRupiah(selectedHistoryForDetail.prizeAmount)}
+                    </div>
+                    <p className="text-[10px] text-zinc-400 mt-1 font-medium italic">
+                      Dana Arisan kumulatif dari {selectedHistoryForDetail.participantsCount} pembalap berpartisipasi.
+                    </p>
+                  </div>
+
+                  {/* Metadata Grid */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-zinc-500" />
+                        <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-wider">Tanggal Tarik</span>
+                      </div>
+                      <p className="text-xs font-mono font-bold text-zinc-200">
+                        {selectedHistoryForDetail.drawnAt && typeof selectedHistoryForDetail.drawnAt === 'string' && !isNaN(Date.parse(selectedHistoryForDetail.drawnAt))
+                          ? new Date(selectedHistoryForDetail.drawnAt).toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })
+                          : selectedHistoryForDetail.drawnAt}
+                      </p>
+                    </div>
+                    <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-zinc-500" />
+                        <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-wider">Kuota Join</span>
+                      </div>
+                      <p className="text-xs font-mono font-bold text-zinc-200">
+                        {selectedHistoryForDetail.participantsCount} Peserta
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
+                    <h4 className="text-[11px] font-black text-zinc-400 uppercase tracking-widest font-mono flex items-center gap-2">
+                       <CreditCard className="w-4 h-4 text-zinc-500" /> BREAKDOWN PUTARAN
+                    </h4>
+                    
+                    <div className="space-y-2 text-xs font-mono">
+                      <div className="flex justify-between items-center py-2 border-b border-white/5">
+                        <span className="text-zinc-500 font-bold uppercase text-[9px]">Status Pelunasan</span>
+                        <span className="text-emerald-400 font-extrabold flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> LUNAS 100%
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b border-white/5">
+                        <span className="text-zinc-500 font-bold uppercase text-[9px]">Arisan Bersih</span>
+                        <span className="text-white font-extrabold">
+                          {formatRupiah(selectedHistoryForDetail.prizeAmount)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-1.5">
+                        <span className="text-zinc-500 font-bold uppercase text-[9px]">Kas Konsumsi Est.</span>
+                        <span className="text-amber-400 font-extrabold">
+                          {formatRupiah(selectedHistoryForDetail.participantsCount * (activeConfig.contributionAmount - Math.round((activeConfig.contributionAmount * 5) / 6)))}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setSubTab("ai-advisor");
+                      setSelectedHistoryForDetail(null);
+                    }}
+                    className={`w-full py-3 px-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-xs font-bold font-mono ${activeLivery.textAccent} transition flex items-center justify-center gap-2 cursor-pointer shadow-lg`}
+                  >
+                    <Sparkles className="w-4 h-4 animate-pulse" /> LIHAT SARAN KEUANGAN AI 🚀
+                  </button>
+                </div>
+                
+                <div className="p-4 bg-zinc-900/80 border-t border-white/5">
+                  <button 
+                    onClick={() => setSelectedHistoryForDetail(null)}
+                    className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold font-mono text-zinc-400 transition"
+                  >
+                    TUTUP DETAIL
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence mode="wait">
           {subTab === "silsilah" && (
             <motion.div
@@ -462,13 +710,14 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
                     filteredHistory.map((item, index) => (
                       <div
                         key={item.id}
-                        className="flex gap-4 relative font-sans"
+                        onClick={() => setSelectedHistoryForDetail(item)}
+                        className="flex gap-4 relative font-sans cursor-pointer group"
                       >
-                        <div className={`w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 z-10 ${activeLivery.textAccent} font-mono text-xs font-bold shadow-md`}>
+                        <div className={`w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 z-10 ${activeLivery.textAccent} font-mono text-xs font-bold shadow-md transition-transform group-hover:scale-105`}>
                           R{item.round}
                         </div>
 
-                        <div className="flex-1 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3 flex justify-between items-center relative overflow-hidden">
+                        <div className="flex-1 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3 flex justify-between items-center relative overflow-hidden transition-all group-hover:bg-white/[0.08] group-hover:border-white/20">
                           <div className="min-w-0 text-left">
                             <div className="flex items-center gap-1">
                               <h4 className="text-xs font-extrabold text-zinc-100 truncate">
@@ -483,7 +732,9 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
                             <div className="flex items-center gap-2 text-[8px] text-zinc-500 font-mono mt-1.5">
                               <span className="flex items-center gap-0.5">
                                 <Calendar className="w-2 h-2" />
-                                {item.drawnAt}
+                                {item.drawnAt && typeof item.drawnAt === 'string' && !isNaN(Date.parse(item.drawnAt))
+                                  ? new Date(item.drawnAt).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" })
+                                  : item.drawnAt}
                               </span>
                               <span className="flex items-center gap-0.5">
                                 <Users className="w-2 h-2" />
@@ -492,7 +743,34 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
                             </div>
                           </div>
 
-                          <div className="text-right shrink-0 ml-1">
+                          <div className="text-right shrink-0 ml-1 flex flex-col items-end gap-1">
+                            {isAdmin && (
+                              <div className="flex gap-0.5 mb-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newName = prompt("Edit Nama Pemenang:", item.winnerName);
+                                    if (newName && onEditHistory) {
+                                      onEditHistory(item.id, { winnerName: newName });
+                                    }
+                                  }}
+                                  className="p-1 text-zinc-600 hover:text-blue-400 hover:bg-blue-500/10 rounded transition cursor-pointer"
+                                  title="Edit Nama Pemenang"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onDeleteHistory) onDeleteHistory(item.id);
+                                  }}
+                                  className="p-1 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded transition cursor-pointer"
+                                  title="Hapus Riwayat"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
                             <span className={`text-[11px] font-black ${activeLivery.textAccent} font-mono block`}>
                               {formatRupiah(item.prizeAmount)}
                             </span>
@@ -637,9 +915,13 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
                         <span>❌ BELUM LUNAS ({unpaidMembersInCurrentRound.length})</span>
                       </div>
                       <div className="space-y-1">
-                          {filteredUnpaid.length > 0 ? (
+                        {filteredUnpaid.length > 0 ? (
                             filteredUnpaid.map((m, index) => (
-                              <div key={m.id} className="bg-[#ffe4e6]/5 border border-red-500/10 rounded-xl p-2 flex justify-between items-center gap-2">
+                              <div 
+                                key={m.id} 
+                                onClick={() => setSelectedMemberDetail(m)}
+                                className="bg-[#ffe4e6]/5 border border-red-500/10 rounded-xl p-2 flex justify-between items-center gap-2 cursor-pointer hover:bg-red-500/10 transition"
+                              >
                                 <div className="min-w-0 flex items-center gap-2">
                                   <span className="text-[9px] font-mono font-black text-[#f43f5e] shrink-0 w-4">{index + 1}.</span>
                                   <div className="min-w-0"><p className="text-[10px] font-bold text-zinc-200 truncate">{m.name}</p></div>
@@ -658,17 +940,21 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
                         <span>✔ LUNAS ({paidMembersInCurrentRound.length})</span>
                       </div>
                       <div className="space-y-1">
-                          {filteredPaid.length > 0 ? (
-                            filteredPaid.map((m, index) => (
-                              <div key={m.id} className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-2 flex justify-between items-center gap-2">
-                                <div className="min-w-0 flex items-center gap-2">
-                                  <span className="text-[9px] font-mono font-black text-emerald-400 shrink-0 w-4">{index + 1}.</span>
-                                  <div className="min-w-0"><p className="text-[10px] font-bold text-zinc-200 truncate">{m.name}</p></div>
-                                </div>
-                                <span className="text-[9px] text-emerald-400 font-mono font-extrabold">{formatRupiah(activeConfig.contributionAmount)}</span>
+                        {filteredPaid.length > 0 ? (
+                          filteredPaid.map((m, index) => (
+                            <div 
+                              key={m.id} 
+                              onClick={() => setSelectedMemberDetail(m)}
+                              className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-2 flex justify-between items-center gap-2 cursor-pointer hover:bg-emerald-500/10 transition"
+                            >
+                              <div className="min-w-0 flex items-center gap-2">
+                                <span className="text-[9px] font-mono font-black text-emerald-400 shrink-0 w-4">{index + 1}.</span>
+                                <div className="min-w-0"><p className="text-[10px] font-bold text-zinc-200 truncate">{m.name}</p></div>
                               </div>
-                            ))
-                          ) : (
+                              <span className="text-[9px] text-emerald-400 font-mono font-extrabold">{formatRupiah(activeConfig.contributionAmount)}</span>
+                            </div>
+                          ))
+                        ) : (
                             <p className="text-[8.5px] font-mono text-zinc-650 text-center py-1 italic">Belum ada pembayaran.</p>
                           )}
                       </div>
@@ -702,10 +988,11 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
                       return (
                         <div 
                           key={h.id}
-                          className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-1.5 hover:border-white/15 transition relative"
+                          onClick={() => setSelectedHistoryForDetail(h)}
+                          className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-1.5 hover:border-white/20 hover:bg-white/[0.08] transition relative cursor-pointer group"
                         >
                           <div className="flex justify-between items-center">
-                            <span className="text-[9px] font-mono font-black text-zinc-400">
+                            <span className="text-[9px] font-mono font-black text-zinc-400 group-hover:text-zinc-200 transition">
                               NO. {index + 1} | PUTARAN {h.round} • {h.winnerName} 👑
                             </span>
                             <span className="text-[8px] text-emerald-400 font-bold font-mono bg-emerald-500/10 border border-emerald-500/15 px-1 py-0.5 rounded uppercase">
@@ -725,7 +1012,9 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
                           </div>
 
                           <div className="border-t border-white/5 pt-1.5 flex justify-between text-[7.5px] font-mono text-zinc-500">
-                            <span>Ditarik pada {h.drawnAt}</span>
+                            <span>Ditarik pada {h.drawnAt && typeof h.drawnAt === 'string' && !isNaN(Date.parse(h.drawnAt))
+                                ? new Date(h.drawnAt).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" })
+                                : h.drawnAt}</span>
                             <span>{h.participantsCount}/{h.participantsCount} Pembalap</span>
                           </div>
                         </div>

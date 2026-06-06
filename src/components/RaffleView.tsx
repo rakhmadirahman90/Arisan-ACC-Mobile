@@ -479,9 +479,16 @@ export default function RaffleView({
               <Lock className="w-4 h-4 text-red-500/40" /> GERBANG ARISAN DIKUNCI TIMER 🔒
             </button>
           ) : raffleState === "idle" && eligibleCandidates.length > 0 && (
-            <button
-              onClick={startRaffle}
-              className={`w-full bg-gradient-to-r ${activeLivery.btnGrad} text-white font-black font-mono tracking-tight py-3 px-4 rounded-xl ${activeLivery.shadowAccent} border ${activeLivery.borderAccent} transition active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer`}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                  navigator.vibrate(100);
+                }
+                startRaffle();
+              }}
+              className={`w-full bg-gradient-to-r ${activeLivery.btnGrad} text-white font-black font-mono tracking-tight py-3 px-4 rounded-xl ${activeLivery.shadowAccent} border ${activeLivery.borderAccent} flex items-center justify-center gap-1.5 cursor-pointer`}
             >
               {isCurrentlyLocked && isAdmin ? (
                 <>
@@ -492,16 +499,18 @@ export default function RaffleView({
                   <Gauge className="w-4 h-4" /> GAS PUTAR MESIN {currentRound} 🏎️💨
                 </>
               )}
-            </button>
+            </motion.button>
           )}
 
           {raffleState === "rolling" && (
-            <button
+            <motion.button
               disabled
+              animate={{ x: [0, -4, 4, -4, 0] }}
+              transition={{ repeat: Infinity, duration: 0.1 }}
               className="w-full bg-white/5 text-zinc-500 font-black font-mono tracking-tight py-3 px-4 rounded-xl border border-white/5 flex items-center justify-center gap-1.5 cursor-not-allowed"
             >
               RPM JALAN REVVING... 🏁
-            </button>
+            </motion.button>
           )}
 
           {raffleState === "winner_selected" && selectedWinner && (

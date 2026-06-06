@@ -7,7 +7,7 @@ import RaffleView from "./components/RaffleView";
 import HistoryView from "./components/HistoryView";
 import SettingsView from "./components/SettingsView";
 import OpeningIntro from "./components/OpeningIntro";
-import { Member, ArisanConfig, PaymentStatus } from "./types";
+import { Member, ArisanConfig, PaymentStatus, ArisanHistory } from "./types";
 import { formatRupiah, LIVERY_THEMES } from "./data";
 import { useArisanData } from "./lib/useArisanData";
 import { Toaster } from "react-hot-toast";
@@ -38,7 +38,9 @@ export default function App() {
     resetData,
     deleteAllMembers,
     deleteMultipleMembers,
-    importMembers
+    importMembers,
+    editHistoryEntry,
+    deleteHistoryEntry
   } = useArisanData();
 
   const [activeTab, setActiveTabRaw] = useState<"dashboard" | "anggota" | "kocok" | "riwayat" | "setelan">("dashboard");
@@ -201,6 +203,26 @@ export default function App() {
     if (!isAdmin) return;
     importMembers(newMembersList);
   };
+
+  const handleEditHistory = (id: string, data: Partial<ArisanHistory>) => {
+    if (!isAdmin) return;
+    editHistoryEntry(id, data);
+  };
+
+  const handleDeleteHistory = (id: string) => {
+    if (!isAdmin) return;
+    setConfirmModal({
+      isOpen: true,
+      title: "HAPUS RIWAYAT",
+      message: "Apakah Anda yakin ingin menghapus catatan riwayat kemenangan ini? Tindakan ini tidak bisa dibatalkan.",
+      confirmText: "YA, HAPUS RIWAYAT ❌",
+      onConfirm: () => {
+        deleteHistoryEntry(id);
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+      }
+    });
+  };
+
 
   // Backup file exporter
   const handleExportData = () => {
@@ -574,6 +596,9 @@ export default function App() {
                       members={members}
                       config={config}
                       payments={payments}
+                      onEditHistory={handleEditHistory}
+                      onDeleteHistory={handleDeleteHistory}
+                      isAdmin={isAdmin}
                     />
                   )}
 
@@ -724,7 +749,11 @@ export default function App() {
                       <p className="text-[11px] font-bold text-zinc-200 leading-tight">
                         {log.text}
                       </p>
-                      <p className="text-[9px] text-zinc-500 mt-0.5 font-mono">{log.time}</p>
+                      <p className="text-[9px] text-zinc-500 mt-0.5 font-mono">
+                        {log.time && typeof log.time === 'string' && !isNaN(Date.parse(log.time))
+                          ? new Date(log.time).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" })
+                          : log.time}
+                      </p>
                     </div>
                   </div>
                 ))

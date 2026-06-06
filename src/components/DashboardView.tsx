@@ -31,7 +31,11 @@ import {
   RefreshCw,
   Sparkles,
   Check,
-  Search
+  Search,
+  CheckCircle2,
+  Car,
+  Clock,
+  History
 } from "lucide-react";
 
 interface DashboardViewProps {
@@ -87,6 +91,7 @@ export default function DashboardView({
 
   // Payment gateway modal states
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedHistoryDetail, setSelectedHistoryDetail] = useState<ArisanHistory | null>(null);
   const [activeMemberPayment, setActiveMemberPayment] = useState<Member | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<"qris" | "bank" | "cash">("qris");
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "waiting" | "verified">("idle");
@@ -421,6 +426,111 @@ export default function DashboardView({
         </div>
       </div>
 
+      {/* History Item Detail Modal Overlay */}
+      <AnimatePresence>
+        {selectedHistoryDetail && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-sm bg-[#0d0f17] border border-white/20 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+            >
+              {/* Header Profile Section */}
+              <div className={`relative p-6 bg-gradient-to-r ${activeLivery.btnGrad} text-white shrink-0`}>
+                <button 
+                  onClick={() => setSelectedHistoryDetail(null)}
+                  className="absolute right-4 top-4 p-1.5 bg-black/20 hover:bg-black/40 rounded-full text-white/80 transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                
+                <div className="flex items-center gap-4 mt-2">
+                  <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl font-black font-mono shadow-xl">
+                    R{selectedHistoryDetail.round}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="inline-block px-2 py-0.5 bg-white/20 rounded-full text-[9px] font-mono font-black border border-white/30 uppercase tracking-widest mb-1.5 leading-none">
+                      PEMENANG RESMI
+                    </span>
+                    <h3 className="text-xl font-black truncate leading-tight">
+                      {selectedHistoryDetail.winnerName}
+                    </h3>
+                    <p className="text-xs text-white/80 font-medium truncate flex items-center gap-1.5 mt-0.5">
+                      <Car className="w-3.5 h-3.5" /> {selectedHistoryDetail.winnerVehicle}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detail Content */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-none text-left">
+                {/* Jackpot Prize Block */}
+                <div className="bg-white/5 border border-white/10 p-5 rounded-2xl relative overflow-hidden group">
+                  <div className="absolute right-0 bottom-0 opacity-[0.03] -rotate-12 translate-x-2 translate-y-2">
+                    <DollarSign className="w-24 h-24 text-white" />
+                  </div>
+                  <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-widest">Jackpot Terbayar</span>
+                  <div className={`text-2xl font-black ${activeLivery.textAccent} font-mono mt-1`}>
+                    {formatRupiah(selectedHistoryDetail.prizeAmount)}
+                  </div>
+                </div>
+
+                {/* Metadata Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl space-y-1">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-zinc-500" />
+                      <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-wider">Tanggal Tarik</span>
+                    </div>
+                    <p className="text-xs font-mono font-bold text-zinc-200">
+                      {selectedHistoryDetail.drawnAt}
+                    </p>
+                  </div>
+                  <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl space-y-1">
+                    <div className="flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-zinc-500" />
+                      <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-wider">Peserta</span>
+                    </div>
+                    <p className="text-xs font-mono font-bold text-zinc-200">
+                      {selectedHistoryDetail.participantsCount} Peserta
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 bg-zinc-900/40 p-4 rounded-2xl border border-white/5">
+                  <h4 className="text-[11px] font-black text-zinc-400 uppercase tracking-widest font-mono flex items-center gap-2">
+                     <CreditCard className="w-4 h-4 text-zinc-500" /> STATUS PUTARAN
+                  </h4>
+                  
+                  <div className="space-y-2 text-xs font-mono">
+                    <div className="flex justify-between items-center py-2 border-b border-white/5">
+                      <span className="text-zinc-500 font-bold uppercase text-[9px]">Pelunasan</span>
+                      <span className="text-emerald-400 font-extrabold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> LUNAS
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-zinc-500 font-bold uppercase text-[9px]">Detail Kuota</span>
+                      <span className="text-white font-extrabold">{selectedHistoryDetail.participantsCount} / {selectedHistoryDetail.participantsCount}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-zinc-900/80 border-t border-white/5">
+                <button 
+                  onClick={() => setSelectedHistoryDetail(null)}
+                  className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold font-mono text-zinc-400 transition"
+                >
+                  TUTUP DETAIL
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Real-time Payment Gateway Quick Portal Banner */}
       <div className="bg-gradient-to-r from-zinc-950 via-[#0e1629] to-zinc-950 border border-white/10 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-lg relative overflow-hidden md:col-span-2 shrink-0">
         <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/5 rounded-full blur-2xl"></div>
@@ -458,12 +568,15 @@ export default function DashboardView({
 
       {/* Last Winner Trophy */}
       {latestWinner ? (
-        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3.5 relative overflow-hidden shadow-lg md:col-span-1 shrink-0">
+        <div 
+          onClick={() => setSelectedHistoryDetail(latestWinner)}
+          className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3.5 relative overflow-hidden shadow-lg md:col-span-1 shrink-0 cursor-pointer group active:scale-[0.99] transition-all"
+        >
           {/* subtle gold ambient glow */}
-          <div className={`absolute right-0 top-0 w-24 h-24 ${activeLivery.ambientFlare1} rounded-full blur-2xl`}></div>
+          <div className={`absolute right-0 top-0 w-24 h-24 ${activeLivery.ambientFlare1} rounded-full blur-2xl transition-all group-hover:scale-125`}></div>
           
           <div className="flex items-center gap-3.5 relative z-10 offset-y">
-            <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400">
+            <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 transition-transform group-hover:scale-110">
               <Trophy className="w-4 h-4 animate-bounce" />
             </div>
             <div className="flex-1 min-w-0">
@@ -492,6 +605,44 @@ export default function DashboardView({
           Belum ada putaran arisan yang diselesaikan.
         </div>
       )}
+
+      {/* RECENT ACTIVITY LOG / TIMELINE */}
+      <div className="md:col-span-3 space-y-3 shrink-0">
+        <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-500 font-mono flex items-center gap-2 px-1">
+          <History className="w-4 h-4 text-zinc-500" />
+          Log Aktivitas Terakhir
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {history.length > 0 ? (
+            history.slice(0, 4).map((h, i) => (
+              <div 
+                key={h.id}
+                onClick={() => setSelectedHistoryDetail(h)}
+                className="bg-zinc-950/40 border border-white/5 rounded-xl p-3 flex items-center gap-3 hover:bg-white/5 transition cursor-pointer group hover:border-white/20"
+              >
+                <div className={`w-8 h-8 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center shrink-0`}>
+                  <Trophy className={`w-3.5 h-3.5 text-amber-500`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex justify-between items-start">
+                    <h4 className="text-[10px] font-bold text-white truncate leading-tight">Pemenang R{h.round}: {h.winnerName}</h4>
+                  </div>
+                  <p className="text-[8px] text-zinc-500 mt-0.5 truncate uppercase font-mono tracking-tighter">
+                    {h.drawnAt && typeof h.drawnAt === 'string' && !isNaN(Date.parse(h.drawnAt))
+                        ? new Date(h.drawnAt).toLocaleString("id-ID", { dateStyle: 'short', timeStyle: 'short' })
+                        : h.drawnAt}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full py-4 text-center bg-white/[0.02] border border-dashed border-white/5 rounded-xl">
+              <p className="text-[10px] text-zinc-600 font-mono italic">Belum ada rekaman aktivitas.</p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Payment List Snapshot for Quick Toggles */}
       <div className="flex flex-col flex-1 min-h-0">

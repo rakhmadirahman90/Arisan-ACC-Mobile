@@ -107,6 +107,24 @@ export function useArisanData() {
     }
   };
 
+  const editHistoryEntry = async (id: string, historyData: Partial<ArisanHistory>) => {
+    try {
+      await updateDoc(doc(db, "history", id), historyData);
+      toast.success("Riwayat berhasil diperbarui!");
+    } catch (err) {
+      toast.error("Gagal memperbarui riwayat");
+    }
+  };
+
+  const deleteHistoryEntry = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "history", id));
+      toast.success("Riwayat berhasil dihapus!");
+    } catch (err) {
+      toast.error("Gagal menghapus riwayat");
+    }
+  };
+
   const updateConfig = async (newConfig: Partial<ArisanConfig>) => {
     try {
       await updateDoc(doc(db, "config", "main"), newConfig);
@@ -326,6 +344,8 @@ export function useArisanData() {
     resetData,
     deleteAllMembers,
     deleteMultipleMembers,
-    importMembers
+    importMembers,
+    editHistoryEntry,
+    deleteHistoryEntry
   };
 }
