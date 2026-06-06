@@ -190,10 +190,6 @@ export default function DashboardView({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.3 }}
       className="h-full w-full p-5 pb-6 overflow-y-auto flex flex-col gap-4 text-left md:grid md:grid-cols-2 md:items-start"
     >
       {/* Header Banner */}

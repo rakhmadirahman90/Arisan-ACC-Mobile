@@ -4,6 +4,7 @@ import { Member, PaymentStatus, ArisanConfig, ArisanHistory } from "../types";
 import { compressImage } from "../lib/imageUtils";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
+import { exportToExcel, exportToPDF } from "../lib/exportUtils";
 import { 
   Users, 
   UserPlus, 
@@ -25,7 +26,9 @@ import {
   Clock,
   Sparkles,
   History,
-  Filter
+  Filter,
+  FileText,
+  Download
 } from "lucide-react";
 
 interface MembersViewProps {
@@ -282,6 +285,26 @@ export default function MembersView({
     setIsAddOpen(true);
   };
 
+  const handleExportExcel = () => {
+    if (!config) return;
+    exportToExcel({
+      history,
+      members,
+      config,
+      payments
+    });
+  };
+
+  const handleExportPDF = () => {
+    if (!config) return;
+    exportToPDF({
+      history,
+      members,
+      config,
+      payments
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
@@ -363,10 +386,6 @@ export default function MembersView({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.3 }}
       className="h-full overflow-hidden p-5 flex flex-col md:grid md:grid-cols-12 md:gap-5 text-left"
     >
       <div className="md:col-span-5 flex flex-col space-y-3 mb-3 shrink-0 md:h-full pb-2">
@@ -443,6 +462,24 @@ export default function MembersView({
                 title="Hapus Seluruh Data Anggota"
               >
                 <Trash2 className="w-4.5 h-4.5" />
+              </button>
+
+              <div className="w-px h-6 bg-white/10 mx-1 hidden md:block"></div>
+
+              <button
+                onClick={handleExportExcel}
+                className="bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 hover:border-emerald-500/50 text-emerald-400 p-2.5 rounded-xl transition flex items-center justify-center cursor-pointer"
+                title="Export ke Excel"
+              >
+                <Download className="w-4.5 h-4.5" />
+              </button>
+
+              <button
+                onClick={handleExportPDF}
+                className="bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/25 hover:border-sky-500/50 text-sky-400 p-2.5 rounded-xl transition flex items-center justify-center cursor-pointer"
+                title="Export ke PDF"
+              >
+                <FileText className="w-4.5 h-4.5" />
               </button>
             </div>
           )}

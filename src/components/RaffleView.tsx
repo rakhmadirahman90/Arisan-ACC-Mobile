@@ -236,10 +236,6 @@ export default function RaffleView({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.3 }}
       className="h-full w-full p-5 pb-6 flex flex-col gap-5 text-left md:grid md:grid-cols-12 md:items-start overflow-y-auto md:overflow-hidden"
     >
       {/* Kocokan Chamber Viewport */}

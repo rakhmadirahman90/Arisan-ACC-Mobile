@@ -32,7 +32,8 @@ import {
   X,
   CreditCard,
   Clock,
-  Car
+  Car,
+  Download
 } from "lucide-react";
 
 interface HistoryViewProps {
@@ -65,7 +66,7 @@ export default function HistoryView({
   const [advisorSearchQuery, setAdvisorSearchQuery] = useState("");
 
   const memberList = members || [];
-  const activeConfig = config || { contributionAmount: 60000, currentRound: 11, totalRounds: 26, currentWinner: "" };
+  const activeConfig = config || { contributionAmount: 60000, currentRound: 11, totalRounds: 26, currentWinner: "", nextDrawDate: new Date().toISOString() };
   const paymentsList = payments || [];
 
   // Sort history reverse to show newest first
@@ -354,6 +355,24 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
   const activeWinner = memberList.find((m) => m.id === selectedDriverId);
   const potentialPrize = memberList.length * arisanShare;
 
+  const handleExportExcel = () => {
+    exportToExcel({
+      history,
+      members: memberList,
+      config: activeConfig,
+      payments: paymentsList
+    });
+  };
+
+  const handleExportPDF = () => {
+    exportToPDF({
+      history,
+      members: memberList,
+      config: activeConfig,
+      payments: paymentsList
+    });
+  };
+
   return (
     <div className="flex flex-col h-full bg-[#0a0a0c]">
       
@@ -640,10 +659,14 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
           {subTab === "silsilah" && (
             <motion.div
               key="silsilah-pane"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, x: 15, y: 3 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              exit={{ opacity: 0, x: -15, y: -3 }}
+              transition={{ 
+                opacity: { duration: 0.15 },
+                x: { type: "spring", stiffness: 400, damping: 35 },
+                y: { type: "spring", stiffness: 400, damping: 35 }
+              }}
               className="absolute inset-0 px-5 pb-4 pt-3 flex flex-col md:grid md:grid-cols-12 md:gap-5 overflow-y-auto md:overflow-hidden scrollbar-none text-left"
             >
               {/* Header and Search Area */}
@@ -675,10 +698,28 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono flex items-center gap-2 px-1">
-                    <History className="w-4 h-4 text-zinc-500" />
-                    Data Arisan Pemenang
-                  </h3>
+                  <div className="flex items-center justify-between px-1">
+                    <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono flex items-center gap-2">
+                      <History className="w-4 h-4 text-zinc-500" />
+                      Data Arisan Pemenang
+                    </h3>
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={handleExportExcel}
+                        className="bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-400 p-1.5 rounded-lg transition"
+                        title="Export Excel"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={handleExportPDF}
+                        className="bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/25 text-sky-400 p-1.5 rounded-lg transition"
+                        title="Export PDF"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
 
                   <div className="relative">
                     <input
@@ -796,10 +837,14 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
           {subTab === "keuangan" && (
             <motion.div
               key="keuangan-pane"
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, x: 15, y: 3 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              exit={{ opacity: 0, x: -15, y: -3 }}
+              transition={{ 
+                opacity: { duration: 0.15 },
+                x: { type: "spring", stiffness: 400, damping: 35 },
+                y: { type: "spring", stiffness: 400, damping: 35 }
+              }}
               className="absolute inset-0 px-5 pb-4 pt-3 flex flex-col md:grid md:grid-cols-12 md:gap-5 overflow-y-auto text-left"
             >
               {/* Content of Keuangan tab only */}
@@ -807,6 +852,21 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
               <div className="flex flex-col space-y-4 md:col-span-5 md:overflow-y-auto scrollbar-none pr-0.5 shrink-0 md:h-full pb-3 md:pb-6">
                 
                 {/* COMPREHENSIVE CASH GRADIENT HERO */}
+                <div className="flex justify-end gap-2 mb-2 pr-1">
+                  <button
+                    onClick={handleExportExcel}
+                    className="bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-400 px-2 py-1 rounded-lg text-[9px] font-mono font-bold flex items-center gap-1.5 transition"
+                  >
+                    <Download className="w-3 h-3" /> EXCEL
+                  </button>
+                  <button
+                    onClick={handleExportPDF}
+                    className="bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/25 text-sky-400 px-2 py-1 rounded-lg text-[9px] font-mono font-bold flex items-center gap-1.5 transition"
+                  >
+                    <FileText className="w-3 h-3" /> PDF
+                  </button>
+                </div>
+
                 <div className="p-3.5 rounded-2xl bg-gradient-to-br from-zinc-950 via-[#0a1122] to-zinc-950 border border-white/15 relative overflow-hidden shadow-lg shrink-0">
                   <div className="absolute -right-3 -top-3 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl"></div>
                   <p className="text-[8.5px] font-mono text-zinc-500 uppercase tracking-widest font-bold">
@@ -1039,10 +1099,14 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
           {subTab === "ai-advisor" && (
             <motion.div
               key="ai-advisor-pane"
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, x: 15, y: 3 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              exit={{ opacity: 0, x: -15, y: -3 }}
+              transition={{ 
+                opacity: { duration: 0.15 },
+                x: { type: "spring", stiffness: 400, damping: 35 },
+                y: { type: "spring", stiffness: 400, damping: 35 }
+              }}
               className="absolute inset-0 px-5 pb-6 pt-3 flex flex-col md:grid md:grid-cols-12 md:gap-5 overflow-hidden text-left"
             >
               {/* Left Column param inputs */}

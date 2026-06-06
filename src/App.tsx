@@ -537,10 +537,14 @@ export default function App() {
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={activeTab}
-                  initial={{ opacity: 0, x: slideDirection > 0 ? 30 : -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: slideDirection > 0 ? -30 : 30 }}
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  initial={{ opacity: 0, x: slideDirection * 20, y: 4 }}
+                  animate={{ opacity: 1, x: 0, y: 0 }}
+                  exit={{ opacity: 0, x: -slideDirection * 20, y: -4 }}
+                  transition={{ 
+                    opacity: { duration: 0.2 },
+                    x: { type: "spring", stiffness: 400, damping: 35 },
+                    y: { type: "spring", stiffness: 400, damping: 35 }
+                  }}
                   className="absolute inset-0 flex flex-col overflow-hidden"
                 >
                   {activeTab === "dashboard" && (

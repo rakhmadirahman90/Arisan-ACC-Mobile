@@ -220,10 +220,6 @@ export default function SettingsView({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.3 }}
       className="h-full w-full overflow-y-auto p-5 pb-6 scrollbar-none flex flex-col gap-4 text-left md:grid md:grid-cols-2 md:items-start"
     >
       {/* Admin Mobile Authentication Access */}
