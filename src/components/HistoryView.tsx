@@ -460,7 +460,7 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
               </div>
 
               {/* Right Column Timeline */}
-              <div className="flex-1 md:col-span-7 overflow-y-auto scrollbar-none pr-0.5 space-y-3 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/5 pb-16 md:pb-24">
+              <div className="flex-1 md:col-span-7 overflow-y-auto scrollbar-none pr-0.5 space-y-3 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/5 pb-4 md:pb-6">
                   {filteredHistory.length > 0 ? (
                      filteredHistory.map((item, index) => (
                       <div
@@ -527,7 +527,7 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
               className="absolute inset-0 px-5 pb-4 pt-3 flex flex-col md:grid md:grid-cols-12 md:gap-5 overflow-hidden text-left"
             >
               {/* Left Column stats and actions */}
-              <div className="md:col-span-5 flex flex-col space-y-4 overflow-y-auto scrollbar-none pr-0.5 shrink-0 md:h-full max-h-[35vh] md:max-h-full pb-3 md:pb-24">
+              <div className="md:col-span-5 flex flex-col space-y-4 overflow-y-auto scrollbar-none pr-0.5 shrink-0 md:h-full max-h-[50vh] md:max-h-full pb-3 md:pb-6">
               
               {/* COMPREHENSIVE CASH GRADIENT HERO */}
               <div className="p-3.5 rounded-2xl bg-gradient-to-br from-zinc-950 via-[#0a1122] to-zinc-950 border border-white/15 relative overflow-hidden shadow-lg shrink-0">
@@ -653,7 +653,7 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
               </div>
 
               {/* Right Column checklist and historical ledgers */}
-              <div className="md:col-span-7 flex flex-col space-y-4 overflow-y-auto scrollbar-none pr-0.5 max-h-[40vh] md:max-h-full pb-20 md:pb-24">
+              <div className="flex-1 md:col-span-7 flex flex-col space-y-4 overflow-y-auto scrollbar-none pr-0.5 min-h-0 md:max-h-full pb-4 md:pb-6">
                 {/* SEARCH FILTER FOR TRANSPARENCY CHECKLIST */}
                 <div className={`space-y-2 bg-white/[0.01] border border-white/5 p-4 rounded-xl hover-glow-${activeLivery.id || "blue"}`}>
                 <div className="flex justify-between items-center px-1">
@@ -856,7 +856,7 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
               className="absolute inset-0 px-5 pb-6 pt-3 flex flex-col md:grid md:grid-cols-12 md:gap-5 overflow-hidden text-left"
             >
               {/* Left Column param inputs */}
-              <div className="md:col-span-5 flex flex-col space-y-4 overflow-y-auto scrollbar-none pr-0.5 shrink-0 md:h-full max-h-[35vh] md:max-h-full pb-3 md:pb-24">
+              <div className="md:col-span-5 flex flex-col space-y-4 overflow-y-auto scrollbar-none pr-0.5 shrink-0 md:h-full max-h-[50vh] md:max-h-full pb-3 md:pb-6">
               {/* BRAND HEADER CARD */}
               <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-950 via-[#0d1222] to-zinc-950 border border-white/10 relative overflow-hidden shadow-lg shrink-0">
                 <div className="absolute right-0 top-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -1019,7 +1019,7 @@ Pemenang arisan yang loyal pada klub! Dana cair **${formatRupiah(prizeValue)}** 
               </div>
 
               {/* Right Column result panel & help details */}
-              <div className="md:col-span-7 flex flex-col space-y-4 overflow-y-auto scrollbar-none pr-0.5 max-h-[40vh] md:max-h-full pb-20 md:pb-24">
+              <div className="flex-1 md:col-span-7 flex flex-col space-y-4 overflow-y-auto scrollbar-none pr-0.5 min-h-0 md:max-h-full pb-4 md:pb-6">
               {/* RESPONSE PANEL DISPLAY */}
               <AnimatePresence mode="wait">
                 {(advisorResponse || advisorError) && (

@@ -187,7 +187,7 @@ export default function DashboardView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="h-full w-full overflow-y-auto p-5 pb-24 scrollbar-none flex flex-col gap-4 text-left md:grid md:grid-cols-2 md:items-start"
+      className="h-full w-full overflow-y-auto p-5 pb-6 scrollbar-none flex flex-col gap-4 text-left md:grid md:grid-cols-2 md:items-start"
     >
       {/* Header Banner */}
       <div className={`relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-4 shadow-xl hover-glow-${config.livery || "blue"} md:col-span-2 shrink-0`}>
