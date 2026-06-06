@@ -205,10 +205,10 @@ export default function RaffleView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="p-5 overflow-y-auto max-h-[71vh] pb-24 scrollbar-none grid grid-cols-1 md:grid-cols-12 gap-5 items-start text-left"
+      className="h-full w-full overflow-y-auto p-5 pb-24 scrollbar-none flex flex-col gap-5 text-left md:grid md:grid-cols-12 md:items-start"
     >
       {/* Kocokan Chamber Viewport */}
-      <div className="md:col-span-7 relative rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md overflow-hidden shadow-2xl p-6 text-center min-h-[300px] md:min-h-[500px] flex flex-col justify-between hover-glow">
+      <div className={`md:col-span-7 relative rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md overflow-hidden shadow-2xl p-6 text-center min-h-[300px] md:min-h-[500px] flex flex-col justify-between hover-glow-${config.livery || "blue"}`}>
         
         {/* RPM dashboard lights decoration */}
         <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
@@ -290,7 +290,7 @@ export default function RaffleView({
                       toast.error("Sandi Admin Salah!");
                     }
                   }}
-                  className="bg-red-600/10 hover:bg-red-650 text-red-400 border border-red-500/20 px-3 py-1 rounded-lg text-[9px] font-mono font-bold transition cursor-pointer shrink-0"
+                  className="bg-red-600/10 hover:bg-red-700 text-red-400 border border-red-500/20 px-3 py-1 rounded-lg text-[9px] font-mono font-bold transition cursor-pointer shrink-0"
                 >
                   MASUK
                 </button>
@@ -463,7 +463,7 @@ export default function RaffleView({
           {raffleState === "rolling" && (
             <button
               disabled
-              className="w-full bg-white/5 text-zinc-650 font-black font-mono tracking-tight py-3 px-4 rounded-xl border border-white/5 flex items-center justify-center gap-1.5 cursor-not-allowed"
+              className="w-full bg-white/5 text-zinc-500 font-black font-mono tracking-tight py-3 px-4 rounded-xl border border-white/5 flex items-center justify-center gap-1.5 cursor-not-allowed"
             >
               RPM JALAN REVVING... 🏁
             </button>
@@ -506,7 +506,7 @@ export default function RaffleView({
       {/* Eligible Candidates & Config Panel - Right Side */}
       <div className="md:col-span-5 flex flex-col space-y-4">
         {/* Eligible Candidates breakdown list */}
-        <div className="space-y-2 bg-white/[0.01] border border-white/5 p-4 rounded-2xl hover-glow">
+        <div className={`space-y-2 bg-white/[0.01] border border-white/5 p-4 rounded-2xl hover-glow-${config.livery || "blue"}`}>
         <div className="flex justify-between items-center px-1 text-slate-400 font-mono text-xs font-black">
           <span className="flex items-center gap-1 text-[10px]">
             <UserCheck className="w-3.5 h-3.5 text-zinc-500" />

@@ -187,26 +187,26 @@ export default function DashboardView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="p-5 overflow-y-auto max-h-[70vh] pb-24 scrollbar-none grid grid-cols-1 md:grid-cols-2 gap-4 items-start text-left"
+      className="h-full w-full overflow-y-auto p-5 pb-24 scrollbar-none flex flex-col gap-4 text-left md:grid md:grid-cols-2 md:items-start"
     >
       {/* Header Banner */}
-      <div className={`relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-4 shadow-xl hover-glow-${config.livery || "blue"} md:col-span-2`}>
+      <div className={`relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-4 shadow-xl hover-glow-${config.livery || "blue"} md:col-span-2 shrink-0`}>
         <div className="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4">
           <DollarSign className={`w-40 h-40 ${activeLivery.textAccent}`} />
         </div>
         
-        <div className="relative z-10 flex flex-col justify-between h-full">
+        <div className="relative z-10 flex flex-col justify-between">
           <div>
             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-black uppercase tracking-wider ${activeLivery.bgPill} ${activeLivery.textAccent} border ${activeLivery.borderAccent} mb-2`}>
-              <TrendingUp className="w-3 h-3" /> Putaran {currentRound} Aktif
+              <TrendingUp className="w-3 h-3" /> PUTARAN {currentRound} AKTIF
             </span>
-            <div className="text-[10px] text-zinc-405 uppercase tracking-widest font-mono">
-              Total Arisan Terkumpul (50k/org)
+            <div className="text-[10px] text-zinc-400 uppercase tracking-widest font-mono">
+              TOTAL ARISAN TERKUMPUL (50K/ORG)
             </div>
             <div className="text-2xl font-black text-white tracking-tight mt-0.5">
               {formatRupiah(currentArisanPot)}
             </div>
-            <div className="text-[10px] text-zinc-350 mt-1.5 flex flex-col gap-0.5 font-mono">
+            <div className="text-[10px] text-zinc-300 mt-1.5 flex flex-col gap-0.5 font-mono">
               <div>Uang Konsumsi Sektet: <span className="text-amber-400 font-bold">{formatRupiah(currentConsumptionPot)}</span> (10k/org)</div>
               <div className="text-zinc-500">Total Setoran Kas: {formatRupiah(paidCount * config.contributionAmount)} / {formatRupiah(totalCount * config.contributionAmount)} ({percentComplete}%)</div>
             </div>
@@ -223,13 +223,13 @@ export default function DashboardView({
       </div>
 
       {/* Main Stats Bento Grid */}
-      <div className="grid grid-cols-2 gap-3 md:col-span-1">
+      <div className="grid grid-cols-2 gap-3 md:col-span-1 shrink-0">
         <div className={`bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center gap-3 shadow-md hover-glow-${config.livery || "blue"}`}>
           <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-450 border border-emerald-500/20">
             <CircleCheck className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[10px] text-zinc-404 font-mono">Setor Lunas</div>
+            <div className="text-[10px] text-zinc-400 font-mono">Setor Lunas</div>
             <div className="text-sm font-black text-white mt-0.5">
               {paidCount} <span className="text-xs font-normal text-zinc-500">/{totalCount}</span>
             </div>
@@ -241,7 +241,7 @@ export default function DashboardView({
             <Hourglass className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[10px] text-zinc-440 font-mono font-bold">Belum Diambil</div>
+            <div className="text-[10px] text-zinc-400 font-mono font-bold">Belum Diambil</div>
             <div className="text-sm font-black text-white mt-0.5">
               {members.filter(m => m.wonRound === null).length} <span className="text-xs font-normal text-zinc-500">mobil</span>
             </div>
@@ -252,14 +252,14 @@ export default function DashboardView({
       {/* Kocokan Quick Call-to-Action */}
       <button 
         onClick={onNavigateToKocokan}
-        className={`w-full bg-gradient-to-r ${activeLivery.btnGrad} text-white py-3 px-4 rounded-xl font-bold font-mono tracking-tight flex items-center justify-center gap-2 transition active:scale-[0.98] ${activeLivery.shadowAccent} border ${activeLivery.borderAccent} cursor-pointer md:col-span-1`}
+        className={`w-full bg-gradient-to-r ${activeLivery.btnGrad} text-white py-3 px-4 rounded-xl font-bold font-mono tracking-tight flex items-center justify-center gap-2 transition active:scale-[0.98] ${activeLivery.shadowAccent} border ${activeLivery.borderAccent} cursor-pointer md:col-span-1 shrink-0`}
       >
         <Play className="w-3.5 h-3.5 fill-current" />
         SABOT KOCOKAN SEKARANG 🏁
       </button>
 
       {/* MONTLHY CONTRIBUTION TREND CARD */}
-      <div className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 shadow-lg text-left space-y-3 hover-glow-${config.livery || "blue"} md:col-span-1 md:row-span-2`}>
+      <div className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 shadow-lg text-left space-y-3 hover-glow-${config.livery || "blue"} md:col-span-1 md:row-span-2 shrink-0`}>
         <div className="flex items-center justify-between border-b border-white/5 pb-1.5">
           <div className="flex items-center gap-2">
             <TrendingUp className={`w-4 h-4 ${activeLivery.textAccent}`} />
@@ -317,20 +317,20 @@ export default function DashboardView({
         </div>
 
         {/* Legend / Metrics */}
-        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/5 font-mono text-[8.5px]">
+        <div className="flex flex-col gap-1.5 sm:grid sm:grid-cols-2 sm:gap-3 pt-2 border-t border-white/5 font-mono text-[8.5px]">
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="w-1.5 h-1.5 rounded-xs shrink-0" style={{ backgroundColor: primaryColor }} />
-            <span className="text-zinc-400 truncate">Total Lunas: <span className="font-bold text-emerald-400">{formatRupiah(totalActualCollected)}</span></span>
+            <span className="text-zinc-400 break-keep">Total Lunas: <span className="font-bold text-emerald-400">{formatRupiah(totalActualCollected)}</span></span>
           </div>
           <div className="flex items-center gap-1.5 min-w-0 font-mono">
             <span className="w-1.5 h-1.5 rounded-xs bg-red-500/50 shrink-0" />
-            <span className="text-zinc-400 truncate">Sisa Piutang: <span className="font-bold text-zinc-300">{formatRupiah(totalOutstandingAmount)}</span></span>
+            <span className="text-zinc-400 break-keep">Sisa Piutang: <span className="font-bold text-zinc-300">{formatRupiah(totalOutstandingAmount)}</span></span>
           </div>
         </div>
       </div>
 
       {/* JADWAL ARISAN & PERTEMUAN SELANJUTNYA */}
-      <div className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl overflow-hidden shadow-lg font-sans hover-glow-${config.livery || "blue"} md:col-span-1`}>
+      <div className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl overflow-hidden shadow-lg font-sans hover-glow-${config.livery || "blue"} md:col-span-1 shrink-0`}>
         {/* Cover Image/Photo */}
         <div className="relative h-36 w-full">
           <img 
@@ -420,7 +420,7 @@ export default function DashboardView({
       </div>
 
       {/* Real-time Payment Gateway Quick Portal Banner */}
-      <div className="bg-gradient-to-r from-zinc-950 via-[#0e1629] to-zinc-950 border border-white/10 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-lg relative overflow-hidden md:col-span-2">
+      <div className="bg-gradient-to-r from-zinc-950 via-[#0e1629] to-zinc-950 border border-white/10 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-lg relative overflow-hidden md:col-span-2 shrink-0">
         <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/5 rounded-full blur-2xl"></div>
         <div className="space-y-1 text-left min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
@@ -456,7 +456,7 @@ export default function DashboardView({
 
       {/* Last Winner Trophy */}
       {latestWinner ? (
-        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3.5 relative overflow-hidden shadow-lg md:col-span-1">
+        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3.5 relative overflow-hidden shadow-lg md:col-span-1 shrink-0">
           {/* subtle gold ambient glow */}
           <div className={`absolute right-0 top-0 w-24 h-24 ${activeLivery.ambientFlare1} rounded-full blur-2xl`}></div>
           
@@ -486,13 +486,13 @@ export default function DashboardView({
           </div>
         </div>
       ) : (
-        <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center text-[11px] text-zinc-500 font-mono">
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center text-[11px] text-zinc-500 font-mono shrink-0">
           Belum ada putaran arisan yang diselesaikan.
         </div>
       )}
 
       {/* Payment List Snapshot for Quick Toggles */}
-      <div className="space-y-2.5">
+      <div className="space-y-2.5 shrink-0">
         <div className="flex justify-between items-center px-1">
           <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 text-zinc-500" />

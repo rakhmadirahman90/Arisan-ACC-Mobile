@@ -341,7 +341,7 @@ export default function MembersView({
       transition={{ duration: 0.3 }}
       className="h-full overflow-hidden p-5 flex flex-col md:grid md:grid-cols-12 md:gap-5 text-left"
     >
-      <div className="md:col-span-5 flex flex-col space-y-3 mb-3 shrink-0 h-full max-h-[35vh] md:max-h-full overflow-y-auto scrollbar-none pb-2">
+      <div className="md:col-span-5 flex flex-col space-y-3 mb-3 shrink-0 md:h-full max-h-[35vh] md:max-h-full overflow-y-auto scrollbar-none pb-2">
         {/* Search Bar + Admin Actions Toolbar */}
       <div className="flex flex-col gap-2">
         <div className="flex gap-2">
@@ -432,7 +432,7 @@ export default function MembersView({
                   className={`px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 cursor-pointer ${
                     selectedIds.length > 0 
                       ? "bg-red-500/20 hover:bg-red-500/35 border border-red-500/30 text-red-400 active:scale-95"
-                      : "bg-[#0b0c10] text-zinc-650 border border-transparent cursor-not-allowed"
+                      : "bg-[#0b0c10] text-zinc-500 border border-transparent cursor-not-allowed"
                   }`}
                 >
                   <Trash2 className="w-3.5 h-3.5" /> HAPUS ({selectedIds.length})
@@ -545,7 +545,7 @@ export default function MembersView({
                     setImportPreview(parsed);
                   }}
                   rows={4}
-                  className={`w-full bg-[#07080c] border border-white/10 rounded-xl p-3 text-[11px] text-white placeholder-zinc-650 font-mono focus:outline-none focus:${activeLivery.borderFocus}`}
+                  className={`w-full bg-[#07080c] border border-white/10 rounded-xl p-3 text-[11px] text-white placeholder-zinc-500 font-mono focus:outline-none focus:${activeLivery.borderFocus}`}
                 />
               </div>
             )}
@@ -688,7 +688,7 @@ export default function MembersView({
                         <button
                           type="button"
                           onClick={() => setPhoto(undefined)}
-                          className="absolute inset-0 bg-red-650/90 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
+                          className="absolute inset-0 bg-red-700/90 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white cursor-pointer"
                           title="Hapus Foto"
                         >
                           <X className="w-4 h-4" />

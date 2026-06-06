@@ -23,7 +23,11 @@ import {
   Upload,
   Image as ImageIcon,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Square
 } from "lucide-react";
 
 interface SettingsViewProps {
@@ -36,6 +40,8 @@ interface SettingsViewProps {
   isAdmin: boolean;
   onSetAdmin: (val: boolean) => void;
   onReplayIntro: () => void;
+  localLivery?: string | null;
+  onPreviewLivery?: (liveryId: string | null) => void;
 }
 
 export default function SettingsView({
@@ -48,6 +54,8 @@ export default function SettingsView({
   isAdmin,
   onSetAdmin,
   onReplayIntro,
+  localLivery = null,
+  onPreviewLivery,
 }: SettingsViewProps) {
   const [contributionInput, setContributionInput] = useState(
     config.contributionAmount.toString()
@@ -127,6 +135,39 @@ export default function SettingsView({
   const [importText, setImportText] = useState("");
   const [importStatus, setImportStatus] = useState<"idle" | "success" | "error">("idle");
   const [adminPasswordInput, setAdminPasswordInput] = useState("");
+  const [isAutoCycling, setIsAutoCycling] = useState(false);
+
+  React.useEffect(() => {
+    if (!isAutoCycling) return;
+
+    const interval = setInterval(() => {
+      const themeKeys = Object.keys(LIVERY_THEMES) as Array<keyof typeof LIVERY_THEMES>;
+      const currentActiveId = localLivery || config.livery || "blue";
+      const currentIndex = themeKeys.indexOf(currentActiveId as any);
+      const nextIndex = (currentIndex + 1) % themeKeys.length;
+      if (onPreviewLivery) {
+        onPreviewLivery(themeKeys[nextIndex]);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [isAutoCycling, localLivery, config.livery, onPreviewLivery]);
+
+  const handleManualCycle = (direction: "prev" | "next") => {
+    const themeKeys = Object.keys(LIVERY_THEMES) as Array<keyof typeof LIVERY_THEMES>;
+    const currentActiveId = localLivery || config.livery || "blue";
+    const currentIndex = themeKeys.indexOf(currentActiveId as any);
+    let targetIndex = 0;
+    if (direction === "next") {
+      targetIndex = (currentIndex + 1) % themeKeys.length;
+    } else {
+      targetIndex = (currentIndex - 1 + themeKeys.length) % themeKeys.length;
+    }
+    
+    if (onPreviewLivery) {
+      onPreviewLivery(themeKeys[targetIndex]);
+    }
+  };
 
   const handleSaveConfig = () => {
     const parsedContrib = parseInt(contributionInput.replace(/[^0-9]/g, ""), 10);
@@ -151,6 +192,7 @@ export default function SettingsView({
       meetupMapQuery: meetupMapQueryInput,
       meetupTime: meetupTimeInput,
       meetupImage: meetupImageInput || undefined,
+      livery: (localLivery || config.livery || "blue") as any,
     });
 
     setSaveSuccess(true);
@@ -182,10 +224,10 @@ export default function SettingsView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="p-5 overflow-y-auto max-h-[70vh] pb-24 scrollbar-none grid grid-cols-1 md:grid-cols-2 gap-4 items-start text-left"
+      className="h-full w-full overflow-y-auto p-5 pb-24 scrollbar-none flex flex-col gap-4 text-left md:grid md:grid-cols-2 md:items-start"
     >
       {/* Admin Mobile Authentication Access */}
-      <div className="bg-gradient-to-r from-zinc-950 via-[#0d0f19] to-zinc-950 border border-white/10 rounded-2xl p-4 space-y-3 font-sans md:col-span-1 hover-glow">
+      <div className={`bg-gradient-to-r from-zinc-950 via-[#0d0f19] to-zinc-950 border border-white/10 rounded-2xl p-4 space-y-3 font-sans md:col-span-1 hover-glow-${config.livery || "blue"}`}>
         <div className="flex justify-between items-center pb-2 border-b border-white/5">
           <h3 className="text-[10px] font-black uppercase font-mono text-zinc-100 flex items-center gap-1.5">
             {isAdmin ? <Unlock className="w-3.5 h-3.5 text-emerald-400" /> : <Lock className="w-3.5 h-3.5 text-zinc-400" />}
@@ -252,7 +294,7 @@ export default function SettingsView({
       </div>
 
       {/* Configuration Section */}
-      <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 space-y-4 font-sans md:col-span-1 hover-glow">
+      <div className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 space-y-4 font-sans md:col-span-1 hover-glow-${config.livery || "blue"}`}>
         <div className="flex justify-between items-center pb-1 border-b border-white/5">
           <h3 className="text-[11px] font-black uppercase font-mono text-zinc-100 flex items-center gap-2">
             <Settings className={`w-4 h-4 ${activeLivery.textAccent}`} />
@@ -631,37 +673,130 @@ export default function SettingsView({
         </div>
 
         {/* Team Racing Liveries Selector */}
-        <div className="space-y-2 border-t border-white/5 pt-3.5">
-          <label className={`block text-[9px] uppercase font-mono font-bold ${activeLivery.textAccent}`}>
-            🏁 Pilih Livery Tim (Tema Warna Aplikasi)
-          </label>
+        <div className="space-y-3.5 border-t border-white/5 pt-3.5 font-sans">
+          <div className="flex justify-between items-center">
+            <label className={`block text-[9.5px] uppercase font-mono font-bold tracking-wider ${activeLivery.textAccent}`}>
+              🏁 Livery Sirkuit & Live Theme Preview
+            </label>
+            {localLivery && localLivery !== config.livery && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onPreviewLivery) {
+                    onPreviewLivery(null);
+                  }
+                  setIsAutoCycling(false);
+                  toast.success("Kembali ke tema default server.");
+                }}
+                className={`text-[8px] font-mono font-bold hover:underline transition flex items-center gap-1 ${activeLivery.textAccent}`}
+              >
+                <RotateCcw className="w-2.5 h-2.5" /> RESET KE DEFAULT
+              </button>
+            )}
+          </div>
+
+          <p className="text-[10px] text-zinc-400 font-medium leading-relaxed">
+            Klik livery tim di bawah untuk menjajal preview seketika (Live Preview) lintas halaman aplikasi tanpa batasan login Admin!
+          </p>
+
           <div className="grid grid-cols-2 gap-2">
             {Object.values(LIVERY_THEMES).map((theme) => {
-              const isSelected = config.livery === theme.id || (!config.livery && theme.id === "blue");
+              const currentActiveId = localLivery || config.livery || "blue";
+              const isSelected = currentActiveId === theme.id;
+              const isServerDefault = config.livery === theme.id || (!config.livery && theme.id === "blue");
               return (
                 <button
                   key={theme.id}
                   type="button"
-                  disabled={!isAdmin}
-                  onClick={() => isAdmin && onUpdateConfig({ livery: theme.id })}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-left border transition cursor-pointer font-sans bg-black/40 ${
+                  onClick={() => {
+                    if (onPreviewLivery) {
+                      onPreviewLivery(theme.id);
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-left border transition cursor-pointer font-sans bg-black/40 ${
                     isSelected 
-                      ? `${theme.borderAccent} bg-white/5` 
-                      : "border-white/5 hover:border-white/10 text-zinc-400 hover:bg-white/2"
-                  } disabled:opacity-40 disabled:cursor-not-allowed`}
+                      ? `${theme.borderAccent} bg-white/5 ring-1 ring-white/10` 
+                      : "border-white/5 hover:border-white/10 text-zinc-400 hover:bg-white/5"
+                  }`}
                 >
                   <div className={`w-3 h-3 rounded-full shrink-0 ${theme.dotBg}`} />
-                  <div>
-                    <div className={`text-[10px] font-black tracking-tight ${isSelected ? "text-white animate-pulse" : "text-zinc-400"}`}>
+                  <div className="min-w-0 flex-1">
+                    <div className={`text-[10px] font-black tracking-tight ${isSelected ? "text-white animate-pulse" : "text-zinc-300"}`}>
                       {theme.name.split(" (")[0]}
                     </div>
-                    <div className="text-[8px] font-mono text-zinc-500 uppercase">
-                      {theme.id} style
+                    <div className="text-[7.5px] font-mono text-zinc-500 uppercase flex items-center justify-between">
+                      <span>{theme.id} style</span>
+                      {isServerDefault && <span className="text-[6.5px] font-sans px-1 py-0.2 bg-white/5 border border-white/10 text-zinc-400 rounded-sm">DEFAULT</span>}
                     </div>
                   </div>
                 </button>
               );
             })}
+          </div>
+
+          {/* Sequential Theme Cycler Control HUD */}
+          <div className="p-3 bg-black/60 border border-white/5 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-inner">
+            <div className="text-left">
+              <span className={`text-[8px] uppercase tracking-wider font-mono font-bold block ${activeLivery.textAccent}`}>
+                🔧 Racing Team HUD Cycler
+              </span>
+              <span className="text-[10px] text-zinc-300 font-medium">
+                Sistem livery aktif: <strong className="text-white capitalize">{localLivery || config.livery || "blue"} Default</strong>
+              </span>
+              {isAutoCycling && (
+                <span className="flex items-center gap-1.5 text-[8.5px] text-emerald-400 font-mono mt-0.5 font-semibold animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
+                  AUTO-CYCLED DEMO JALAN (2s)
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => handleManualCycle("prev")}
+                  className="p-2 border-r border-white/10 hover:bg-white/5 text-zinc-400 hover:text-white transition cursor-pointer"
+                  title="Livery Sebelumnya"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleManualCycle("next")}
+                  className="p-2 hover:bg-white/5 text-zinc-400 hover:text-white transition cursor-pointer"
+                  title="Livery Berikutnya"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAutoCycling(!isAutoCycling);
+                  toast.success(
+                    isAutoCycling ? "Auto-cycling diberhentikan." : "Auto-cycling dimulai! Menjelajahi sirkuit livery...",
+                    { id: "autocycle-toast" }
+                  );
+                }}
+                className={`flex-1 py-1.5 px-3 rounded-xl border transition font-mono font-bold text-[9.5px] flex items-center justify-center gap-1.5 cursor-pointer ${
+                  isAutoCycling
+                    ? "bg-emerald-500/10 hover:bg-emerald-500/15 border-emerald-500/30 text-emerald-400 active:scale-95 animate-pulse"
+                    : `${activeLivery.bgPill} border-white/5 hover:border-white/10 text-white active:scale-95`
+                }`}
+              >
+                {isAutoCycling ? (
+                  <>
+                    <Square className="w-3 h-3 text-emerald-400 fill-emerald-400" /> STOP AUTO
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3 h-3 text-white fill-white" /> RUN AUTO
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -684,7 +819,7 @@ export default function SettingsView({
       </div>
 
       {/* Backup and Sync Utility */}
-      <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 space-y-3 font-sans md:col-span-1 hover-glow">
+      <div className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-4 space-y-3 font-sans md:col-span-1 hover-glow-${config.livery || "blue"}`}>
         <h3 className="text-[11px] font-black uppercase font-mono text-zinc-100 flex items-center gap-2 pb-1 border-b border-white/5">
           <HardDriveDownload className={`w-4 h-4 ${activeLivery.textAccent}`} />
           Backup & Sinkronisasi Eksternal
@@ -746,7 +881,7 @@ export default function SettingsView({
       </div>
 
       {/* Wipe/Reset Block */}
-      <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 space-y-3.5 text-center font-sans md:col-span-1 hover-glow">
+      <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 space-y-3.5 text-center font-sans md:col-span-1 hover-glow-red">
         <h3 className="text-xs font-black uppercase font-mono text-rose-500 flex items-center justify-center gap-1.5">
           <RotateCcw className="w-4 h-4 text-red-500" /> WIPE OUT PADDOCK DANGER ZONE
         </h3>
@@ -772,7 +907,7 @@ export default function SettingsView({
       </div>
 
       {/* Rules Board Info */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 font-sans text-xs text-zinc-400 space-y-3 md:col-span-2 hover-glow">
+      <div className={`bg-white/5 border border-white/10 rounded-2xl p-4 font-sans text-xs text-zinc-400 space-y-3 md:col-span-2 hover-glow-${config.livery || "blue"}`}>
         <h4 className={`font-extrabold text-zinc-205 uppercase flex items-center gap-1 font-mono text-[10px] ${activeLivery.textAccent}`}>
           <Info className={`w-4 h-4 ${activeLivery.textAccent}`} /> ATURAN BALAP AUTO CLASER CLUB
         </h4>

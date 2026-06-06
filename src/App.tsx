@@ -43,6 +43,12 @@ export default function App() {
 
   const [activeTab, setActiveTabRaw] = useState<"dashboard" | "anggota" | "kocok" | "riwayat" | "setelan">("dashboard");
   const [slideDirection, setSlideDirection] = useState<number>(1);
+  const [localLivery, setLocalLivery] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("claser_live_livery") || null;
+    }
+    return null;
+  });
 
   const TABS = ["dashboard", "anggota", "kocok", "riwayat", "setelan"] as const;
   const setActiveTab = (newTab: "dashboard" | "anggota" | "kocok" | "riwayat" | "setelan") => {
@@ -128,7 +134,24 @@ export default function App() {
   };
 
   const handleUpdateConfig = (newConfig: Partial<ArisanConfig>) => {
+    if (newConfig.livery) {
+      setLocalLivery(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("claser_live_livery");
+      }
+    }
     updateConfig(newConfig);
+  };
+
+  const handlePreviewLivery = (liveryId: string | null) => {
+    setLocalLivery(liveryId);
+    if (typeof window !== "undefined") {
+      if (liveryId) {
+        localStorage.setItem("claser_live_livery", liveryId);
+      } else {
+        localStorage.removeItem("claser_live_livery");
+      }
+    }
   };
 
   const handleResetData = () => {
@@ -321,11 +344,11 @@ export default function App() {
     })
   ].reverse().slice(0, 4);
 
-  const activeLivery = LIVERY_THEMES[config.livery || "blue"] || LIVERY_THEMES.blue;
+  const activeLivery = LIVERY_THEMES[(localLivery || config.livery || "blue") as keyof typeof LIVERY_THEMES] || LIVERY_THEMES.blue;
 
   return (
     <div 
-      className="min-h-screen w-full bg-[#020203] text-slate-200 font-sans flex items-center justify-center p-4 lg:p-8 select-none relative overflow-x-hidden"
+      className="min-h-screen w-full bg-[#020203] text-slate-200 font-sans flex items-center justify-center p-0 sm:p-4 lg:p-8 select-none relative overflow-x-hidden"
       style={{ background: "radial-gradient(circle at 50% 50%, #0a111a 0%, #020203 100%)" }}
     >
       <Toaster 
@@ -413,7 +436,7 @@ export default function App() {
           <div className="p-4.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.4)] space-y-2">
             <p className="text-[10px] uppercase tracking-widest text-[#a8a29e] font-bold mb-1 font-mono flex items-center justify-between">
               <span>Admin Control</span>
-              <span className={`w-1.5 h-1.5 rounded-full ${isAdmin ? "bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" : "bg-zinc-650"}`}></span>
+              <span className={`w-1.5 h-1.5 rounded-full ${isAdmin ? "bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" : "bg-zinc-600"}`}></span>
             </p>
             {isAdmin ? (
               <div className="space-y-2 font-sans">
@@ -474,17 +497,11 @@ export default function App() {
 
         {/* CENTER MOBILE SIMULATOR */}
         <div 
-          className={`h-[740px] bg-[#0a0a0c] rounded-[48px] border-[10px] border-[#1a1a1e] shadow-[0_10px_70px_rgba(0,0,0,0.85)] overflow-hidden relative flex flex-col justify-between select-none shrink-0 hover:border-[#222228] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-            activeTab === "dashboard" ? "w-[360px] md:w-[780px]" :
-            activeTab === "anggota" ? "w-[360px] md:w-[840px]" :
-            activeTab === "kocok" ? "w-[360px] md:w-[760px]" :
-            activeTab === "riwayat" ? "w-[360px] md:w-[860px]" :
-            "w-[360px] md:w-[800px]" // setelan
-          }`}
+          className="h-screen sm:h-[760px] w-full sm:w-[380px] max-h-[100dvh] sm:max-h-[92vh] bg-[#0a0a0c] rounded-none sm:rounded-[48px] border-0 sm:border-[10px] border-[#1a1a1e] shadow-none sm:shadow-[0_10px_70px_rgba(0,0,0,0.85)] overflow-hidden relative flex flex-col justify-between select-none shrink-0 hover:border-[#1a1a1e] sm:hover:border-[#222228] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
         >
           
           {/* Device camera lens cover decoration */}
-          <div className="absolute left-1/2 -translate-x-1/2 top-5 w-3 h-3 bg-zinc-900 border border-zinc-800 rounded-full z-50"></div>
+          <div className="hidden sm:block absolute left-1/2 -translate-x-1/2 top-5 w-3 h-3 bg-zinc-900 border border-zinc-800 rounded-full z-50"></div>
           
           <div className="flex-1 flex flex-col justify-between overflow-hidden relative">
             
@@ -569,6 +586,8 @@ export default function App() {
                       isAdmin={isAdmin}
                       onSetAdmin={handleSetAdmin}
                       onReplayIntro={() => setShowIntro(true)}
+                      localLivery={localLivery}
+                      onPreviewLivery={handlePreviewLivery}
                     />
                   )}
                 </motion.div>
@@ -635,7 +654,7 @@ export default function App() {
             </div>
 
             {/* Physical Home Indicator bar mockup */}
-            <div className="w-full bg-[#0a0a0c] pb-2 pt-1 flex justify-center shrink-0 border-t border-white/5">
+            <div className="hidden sm:flex w-full bg-[#0a0a0c] pb-2 pt-1 justify-center shrink-0 border-t border-white/5">
               <div className="w-24 h-1 bg-zinc-800 rounded-full"></div>
             </div>
 
@@ -673,7 +692,7 @@ export default function App() {
                       </button>
                       <button
                         onClick={confirmModal.onConfirm}
-                        className="w-full py-2.5 bg-red-650 hover:bg-red-500 text-white rounded-xl transition cursor-pointer shadow-lg shadow-red-900/40 animate-pulse"
+                        className="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl transition cursor-pointer shadow-lg shadow-red-900/40 animate-pulse"
                       >
                         {confirmModal.confirmText}
                       </button>

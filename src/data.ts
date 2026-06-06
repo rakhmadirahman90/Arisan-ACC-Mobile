@@ -325,12 +325,14 @@ export const INITIAL_PAYMENTS: PaymentStatus[] = [
 ];
 
 export function formatRupiah(value: number): string {
-  return new Intl.NumberFormat("id-ID", {
+  const raw = new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
+  if (raw.startsWith("Rp ") || raw.includes("Rp ")) return raw;
+  return raw.replace("Rp", "Rp ");
 }
 
 export const CAR_BRANDS = [
