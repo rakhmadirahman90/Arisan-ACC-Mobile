@@ -307,22 +307,22 @@ export default function MembersView({
       sanitizedPhone = "6281234567890"; // default mock
     }
 
-    if (editingId && onEditMember) {
-      onEditMember(editingId, {
-        name: name.trim(),
-        vehicle: vehicle.trim(),
-        phone: sanitizedPhone,
-        avatarColor: selectedColor,
-        photo: photo,
-      });
+    const payload: Partial<Member> = {
+      name: name.trim(),
+      vehicle: vehicle.trim(),
+      phone: sanitizedPhone,
+      avatarColor: selectedColor,
+    };
+    if (photo !== undefined) {
+      payload.photo = photo;
     } else {
-      onAddMember({
-        name: name.trim(),
-        vehicle: vehicle.trim(),
-        phone: sanitizedPhone,
-        avatarColor: selectedColor,
-        photo: photo,
-      });
+      payload.photo = ""; // Pass empty string to clear it instead of undefined which crashes Firestore
+    }
+
+    if (editingId && onEditMember) {
+      onEditMember(editingId, payload as any);
+    } else {
+      onAddMember(payload as any);
     }
 
     // Reset Form
@@ -369,7 +369,7 @@ export default function MembersView({
       transition={{ duration: 0.3 }}
       className="h-full overflow-hidden p-5 flex flex-col md:grid md:grid-cols-12 md:gap-5 text-left"
     >
-      <div className="md:col-span-5 flex flex-col space-y-3 mb-3 shrink-0 md:h-full max-h-[50vh] md:max-h-full overflow-y-auto scrollbar-none pb-2">
+      <div className="md:col-span-5 flex flex-col space-y-3 mb-3 shrink-0 md:h-full pb-2">
         {/* Search Bar + Admin Actions Toolbar */}
       <div className="flex flex-col gap-2">
         {/* Search Bar - Full Width */}
@@ -496,16 +496,17 @@ export default function MembersView({
         </AnimatePresence>
       </div>
 
-      {/* Slide down Import Massal Panel */}
+      {/* Import Massal Panel Modal */}
       <AnimatePresence>
         {isImportOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden bg-[#0d0f17] border border-white/10 rounded-2xl p-4 shadow-xl space-y-3"
-          >
-            <div className="flex justify-between items-center pb-2 border-b border-white/5">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md bg-[#0d0f17] border border-white/20 rounded-2xl p-4 shadow-2xl space-y-3"
+            >
+              <div className="flex justify-between items-center pb-2.5 border-b border-white/10">
               <h3 className={`text-xs font-black uppercase font-mono ${activeLivery.textAccent} flex items-center gap-1.5`}>
                 <Upload className={`w-4 h-4 ${activeLivery.textAccent}`} /> Import Anggota Massal
               </h3>
@@ -517,7 +518,8 @@ export default function MembersView({
               </button>
             </div>
 
-            <p className="text-[10px] text-zinc-400 leading-relaxed font-sans">
+            <div className="flex flex-col space-y-3 max-h-[75vh] overflow-y-auto scrollbar-none">
+            <p className="text-[10px] text-zinc-400 leading-relaxed font-sans mt-0.5">
               Unggah file spreadsheet <b>(.xlsx, .xls, .csv, .txt)</b> atau tempel data teks. Data baru otomatis tergabung ke dalam daftar keanggotaan.
             </p>
 
@@ -653,20 +655,23 @@ export default function MembersView({
                 </button>
               </div>
             )}
-          </motion.div>
+            </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
-      {/* Slide down Add Member Panel */}
+      {/* Add / Edit Member Panel Modal */}
       <AnimatePresence>
         {isAddOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden bg-[#0d0f17] border border-white/10 rounded-2xl p-4 shadow-xl space-y-3"
-          >
-            <div className="flex justify-between items-center pb-2 border-b border-white/5">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md bg-[#0d0f17] border border-white/20 rounded-2xl p-4 shadow-2xl space-y-3"
+            >
+              <div className="flex justify-between items-center pb-2.5 border-b border-white/10">
               <h3 className={`text-xs font-black uppercase font-mono ${activeLivery.textAccent} flex items-center gap-1.5`}>
                 <Crown className={`w-4 h-4 ${activeLivery.textAccent}`} /> {editingId ? "Edit Anggota" : "Daftar Anggota Baru"}
               </h3>
@@ -678,9 +683,9 @@ export default function MembersView({
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-2.5 flex flex-col max-h-[75vh] overflow-y-auto scrollbar-none">
               <div>
-                <label className="block text-[10px] uppercase font-mono font-bold text-zinc-400 mb-1">
+                <label className="block text-[9.5px] uppercase font-mono font-bold text-zinc-400 mb-1">
                   Nama Lengkap Anggota
                 </label>
                 <input
@@ -688,13 +693,13 @@ export default function MembersView({
                   placeholder="Misal: Bro Aris / Sist Amanda"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className={`w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:${activeLivery.borderFocus}`}
+                  className={`w-full bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:${activeLivery.borderFocus}`}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[10px] uppercase font-mono font-bold text-zinc-400 mb-1">
+                  <label className="block text-[9.5px] uppercase font-mono font-bold text-zinc-400 mb-1">
                     Model Mobil / Motor
                   </label>
                   <input
@@ -702,11 +707,11 @@ export default function MembersView({
                     placeholder="Contoh: Civic Turbo"
                     value={vehicle}
                     onChange={(e) => setVehicle(e.target.value)}
-                    className={`w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:${activeLivery.borderFocus}`}
+                    className={`w-full bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:${activeLivery.borderFocus}`}
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-mono font-bold text-zinc-400 mb-1">
+                  <label className="block text-[9.5px] uppercase font-mono font-bold text-zinc-400 mb-1">
                     No. Handphone (WA)
                   </label>
                   <input
@@ -714,18 +719,18 @@ export default function MembersView({
                     placeholder="0812xxxxxxxx"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className={`w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-600 focus:outline-none focus:${activeLivery.borderFocus}`}
+                    className={`w-full bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:${activeLivery.borderFocus}`}
                   />
                 </div>
               </div>
 
               {/* Upload Foto Anggota */}
-              <div className="space-y-1.5 bg-white/[0.02] border border-white/5 rounded-xl p-3">
-                <label className="block text-[10px] uppercase font-mono font-bold text-zinc-400">
+              <div className="space-y-1.5 bg-white/[0.02] border border-white/5 rounded-xl p-2.5">
+                <label className="block text-[9.5px] uppercase font-mono font-bold text-zinc-400">
                   Foto Anggota (Unggah & Kompres)
                 </label>
-                <div className="flex items-center gap-3">
-                  <div className="relative w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden group">
+                <div className="flex items-center gap-2">
+                  <div className="relative w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden group">
                     {photo ? (
                       <>
                         <img src={photo} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -830,19 +835,20 @@ export default function MembersView({
                 {editingId ? "SIMPAN PERUBAHAN 💾" : "TAMBAH ANGGOTA 👤"}
               </button>
             </form>
-          </motion.div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
       </div>
 
       {/* Member Cards Pipeline - Right Side */}
-      <div className="flex-1 md:col-span-7 overflow-y-auto scrollbar-none pb-4 space-y-2.5 min-h-0 md:max-h-full">
-        <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-500 font-mono flex items-center gap-2 px-1 sticky top-0 bg-[#0a0a0c] py-1.5 z-10">
+      <div className="flex-1 min-h-0 md:col-span-7 flex flex-col">
+        <h3 className="shrink-0 text-[10px] font-black uppercase tracking-wider text-zinc-500 font-mono flex items-center gap-2 px-1 pb-2">
           <Users className="w-4 h-4 text-zinc-500" />
           Daftar Anggota Arisan ({filteredMembers.length})
         </h3>
 
-        <div className="space-y-2">
+        <div className="flex-1 overflow-y-auto scrollbar-none space-y-2 pb-4 px-1">
           {filteredMembers.length > 0 ? (
             filteredMembers.map((member, index) => {
               const hasPaidCount = payments.filter((p) => p.memberId === member.id && p.isPaid).length;
@@ -1194,7 +1200,8 @@ export default function MembersView({
                       Log Pembayaran Tiap Putaran
                     </h4>
 
-                    <div className="space-y-1.5 max-h-[250px] overflow-y-auto scrollbar-none pr-0.5">
+                    <div className="flex flex-col flex-1 min-h-0">
+                    <div className="flex-1 overflow-y-auto scrollbar-none pr-0.5">
                       {Array.from({ length: totalRounds }).map((_, i) => {
                         const roundNum = i + 1;
                         const pStatus = memberPayments.find((p) => p.round === roundNum);
@@ -1230,6 +1237,7 @@ export default function MembersView({
                           </div>
                         );
                       })}
+                    </div>
                     </div>
                   </div>
 

@@ -189,7 +189,7 @@ export default function DashboardView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="h-full w-full overflow-y-auto p-5 pb-6 scrollbar-none flex flex-col gap-4 text-left md:grid md:grid-cols-2 md:items-start"
+      className="h-full w-full p-5 pb-6 overflow-y-auto flex flex-col gap-4 text-left md:grid md:grid-cols-2 md:items-start"
     >
       {/* Header Banner */}
       <div className={`relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-4 shadow-xl hover-glow-${config.livery || "blue"} md:col-span-2 shrink-0`}>
@@ -386,7 +386,7 @@ export default function DashboardView({
 
           {/* Map Section */}
           {(config.meetupMapQuery || config.meetupAddress) && (
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 shrink-0">
               <span className="text-zinc-500 font-bold block uppercase font-mono tracking-wider text-[8px]">Peta Lokasi Presisi (Interaktif)</span>
               <div className="w-full h-40 rounded-xl overflow-hidden border border-white/10 relative bg-zinc-900">
                 <iframe
@@ -494,61 +494,64 @@ export default function DashboardView({
       )}
 
       {/* Payment List Snapshot for Quick Toggles */}
-      <div className="space-y-2.5 shrink-0">
-        <div className="flex justify-between items-center px-1">
-          <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5 text-zinc-500" />
-            Monitor Setoran (R{currentRound})
-          </h3>
-          <span className={`text-[10px] bg-white/5 border border-white/10 ${activeLivery.textAccent} px-2 py-0.5 rounded-full font-mono`}>
-            {paidCount}/{totalCount}
-          </span>
-        </div>
-
-        {/* Search Bar */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Cari pembalap, unit, atau HP..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/[0.04] border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/20 transition font-sans"
-          />
-          <div className="absolute left-3 top-2.5 text-zinc-500">
-            <Search className="w-3.5 h-3.5" />
+      <div className="flex flex-col flex-1 min-h-0">
+        <div className="space-y-2.5 shrink-0">
+          <div className="flex justify-between items-center px-1">
+            <h3 className="text-[10px] font-black uppercase tracking-wider text-zinc-400 font-mono flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5 text-zinc-500" />
+              Monitor Setoran (R{currentRound})
+            </h3>
+            <span className={`text-[10px] bg-white/5 border border-white/10 ${activeLivery.textAccent} px-2 py-0.5 rounded-full font-mono`}>
+              {paidCount}/{totalCount}
+            </span>
           </div>
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-2.5 text-[10px] text-zinc-400 font-mono hover:text-white transition cursor-pointer font-bold"
+
+          {/* Search Bar */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Cari pembalap, unit, atau HP..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white/[0.04] border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/20 transition font-sans"
+            />
+            <div className="absolute left-3 top-2.5 text-zinc-500">
+              <Search className="w-3.5 h-3.5" />
+            </div>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-2.5 text-[10px] text-zinc-400 font-mono hover:text-white transition cursor-pointer font-bold"
+              >
+                Ulang
+              </button>
+            )}
+          </div>
+
+          {/* Shortcut Bayar Semua (Admin Only) */}
+          {isAdmin && unpaidCount > 0 && onInstantPayAll && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              onClick={() => {
+                const confirmMsg = `⚠️ KONFIRMASI MASSAL: Apakah Anda yakin ingin menandai LUNAS iuran seluruh anggota (${unpaidCount} pembalap) untuk Putaran ${currentRound}?`;
+                if (window.confirm(confirmMsg)) {
+                  onInstantPayAll();
+                }
+              }}
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold font-mono tracking-wide flex items-center justify-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/25 hover:border-emerald-500/40 text-emerald-400 shadow-md transition duration-200 cursor-pointer"
             >
-              Ulang
-            </button>
+              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+              BAYAR SEMUA ANGGOTA ({unpaidCount} TERTUNGGAK) ⚡
+            </motion.button>
           )}
         </div>
 
-        {/* Shortcut Bayar Semua (Admin Only) */}
-        {isAdmin && unpaidCount > 0 && onInstantPayAll && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            onClick={() => {
-              const confirmMsg = `⚠️ KONFIRMASI MASSAL: Apakah Anda yakin ingin menandai LUNAS iuran seluruh anggota (${unpaidCount} pembalap) untuk Putaran ${currentRound}?`;
-              if (window.confirm(confirmMsg)) {
-                onInstantPayAll();
-              }
-            }}
-            className="w-full py-2.5 px-4 rounded-xl text-xs font-bold font-mono tracking-wide flex items-center justify-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/25 hover:border-emerald-500/40 text-emerald-400 shadow-md transition duration-200 cursor-pointer"
-          >
-            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-            BAYAR SEMUA ANGGOTA ({unpaidCount} TERTUNGGAK) ⚡
-          </motion.button>
-        )}
-
         {/* Member Grid Row */}
-        <div className="grid grid-cols-1 gap-2 max-h-[250px] overflow-y-auto scrollbar-none pr-0.5">
+        <div className="flex-1 min-h-[300px] overflow-y-auto scrollbar-none pr-0.5 mt-2.5">
+          <div className="grid grid-cols-1 gap-2">
           {(() => {
             const listFiltered = members.filter((member) => {
               if (!searchQuery.trim()) return true;
@@ -646,6 +649,7 @@ export default function DashboardView({
               );
             });
           })()}
+          </div>
         </div>
       </div>
 

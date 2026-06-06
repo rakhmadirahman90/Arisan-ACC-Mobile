@@ -118,6 +118,9 @@ export function useArisanData() {
 
   const togglePayment = async (memberId: string) => {
     try {
+      const member = members.find((m) => m.id === memberId);
+      const memberName = member ? member.name : "Anggota";
+
       const round = config.currentRound;
       const existingIndex = payments.findIndex((p) => p.memberId === memberId && p.round === round);
       if (existingIndex > -1) {
@@ -127,7 +130,19 @@ export function useArisanData() {
           isPaid: newPaidStatus,
           paidAt: newPaidStatus ? new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short" }) : null
         });
-        toast.success(newPaidStatus ? "Pembayaran berhasil dilunasi!" : "Pembayaran dibatalkan");
+        toast.success(
+          newPaidStatus ? `Pembayaran ${memberName} berhasil dilunasi!` : `Pembayaran ${memberName} dibatalkan`, 
+          {
+            icon: newPaidStatus ? '✅' : '❌',
+            duration: 3000,
+            style: {
+              borderRadius: '10px',
+              background: '#0c0c10',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.1)'
+            }
+          }
+        );
       } else {
         await setDoc(doc(db, "payments", `${memberId}-${round}`), {
           memberId,
@@ -135,7 +150,16 @@ export function useArisanData() {
           isPaid: true,
           paidAt: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short" }),
         });
-        toast.success("Pembayaran berhasil dilunasi!");
+        toast.success(`Pembayaran ${memberName} berhasil dilunasi!`, {
+          icon: '✅',
+          duration: 3000,
+          style: {
+            borderRadius: '10px',
+            background: '#0c0c10',
+            color: '#fff',
+            border: '1px solid rgba(255,255,255,0.1)'
+          }
+        });
       }
     } catch (err) {
       toast.error("Gagal memperbarui status pembayaran");

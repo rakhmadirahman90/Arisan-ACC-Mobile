@@ -240,10 +240,10 @@ export default function RaffleView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="h-full w-full overflow-y-auto p-5 pb-6 scrollbar-none flex flex-col gap-5 text-left md:grid md:grid-cols-12 md:items-start"
+      className="h-full w-full p-5 pb-6 flex flex-col gap-5 text-left md:grid md:grid-cols-12 md:items-start"
     >
       {/* Kocokan Chamber Viewport */}
-      <div className={`md:col-span-7 relative rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md overflow-hidden shadow-2xl p-6 text-center min-h-[300px] md:min-h-[500px] flex flex-col justify-between hover-glow-${config.livery || "blue"}`}>
+      <div className={`md:col-span-7 relative rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md overflow-hidden shadow-2xl p-6 text-center min-h-[300px] flex flex-col justify-between hover-glow-${config.livery || "blue"}`}>
         
         {/* RPM dashboard lights decoration */}
         <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
@@ -541,8 +541,8 @@ export default function RaffleView({
       {/* Eligible Candidates & Config Panel - Right Side */}
       <div className="md:col-span-5 flex flex-col space-y-4">
         {/* Eligible Candidates breakdown list */}
-        <div className={`space-y-2 bg-white/[0.01] border border-white/5 p-4 rounded-2xl hover-glow-${config.livery || "blue"}`}>
-        <div className="flex justify-between items-center px-1 text-slate-400 font-mono text-xs font-black">
+        <div className={`flex flex-col flex-1 min-h-0 space-y-2 bg-white/[0.01] border border-white/5 p-4 rounded-2xl hover-glow-${config.livery || "blue"}`}>
+        <div className="flex justify-between items-center px-1 text-slate-400 font-mono text-xs font-black shrink-0">
           <span className="flex items-center gap-1 text-[10px]">
             <UserCheck className="w-3.5 h-3.5 text-zinc-500" />
             PARTISIPAN KOCOK (LUNAS)
@@ -553,7 +553,7 @@ export default function RaffleView({
         </div>
 
         {/* Candidate Search Bar */}
-        <div className="relative">
+        <div className="relative shrink-0">
           <input
             type="text"
             placeholder="Cari partisipan kocok..."
@@ -574,7 +574,7 @@ export default function RaffleView({
           )}
         </div>
 
-        <div className="max-h-[17vh] md:max-h-[42vh] overflow-y-auto space-y-1.5 border border-white/5 rounded-xl p-2.5 bg-black/25 font-sans">
+        <div className="flex-1 overflow-y-auto scrollbar-none space-y-1.5 border border-white/5 rounded-xl p-2.5 bg-black/25 font-sans">
           {filteredCandidates.length > 0 ? (
             filteredCandidates.map((candidate, idx) => (
               <div 
