@@ -240,10 +240,10 @@ export default function RaffleView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="h-full w-full p-5 pb-6 flex flex-col gap-5 text-left md:grid md:grid-cols-12 md:items-start"
+      className="h-full w-full p-5 pb-6 flex flex-col gap-5 text-left md:grid md:grid-cols-12 md:items-start overflow-y-auto md:overflow-hidden"
     >
       {/* Kocokan Chamber Viewport */}
-      <div className={`md:col-span-7 relative rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md overflow-hidden shadow-2xl p-6 text-center min-h-[300px] flex flex-col justify-between hover-glow-${config.livery || "blue"}`}>
+      <div className={`md:col-span-7 relative rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md overflow-y-auto shadow-2xl p-6 text-center min-h-[300px] flex flex-col justify-between hover-glow-${config.livery || "blue"}`}>
         
         {/* RPM dashboard lights decoration */}
         <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
