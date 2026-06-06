@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import confetti from "canvas-confetti";
 import { Member, ArisanConfig, PaymentStatus } from "../types";
 import { formatRupiah } from "../data";
 import toast from "react-hot-toast";
@@ -185,6 +186,40 @@ export default function RaffleView({
 
   const handleConfirm = () => {
     if (selectedWinner) {
+      // Fire celebration confetti!
+      const duration = 3000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+
+      const interval: any = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        // since particles fall down, start a bit higher than random
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: Math.random(), y: Math.random() - 0.2 },
+          colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
+        });
+      }, 250);
+
+      // Play success sound if needed, or just visual
+      toast.success(`Selamat kepada ${selectedWinner.name}!`, {
+        icon: '🎉',
+        duration: 4000,
+        style: {
+          borderRadius: '10px',
+          background: '#0c0c10',
+          color: '#fff',
+          border: '1px solid rgba(255,255,255,0.1)',
+        },
+      });
+
       onConfirmWinner(selectedWinner.id, prizePool);
       // reset component state
       setRaffleState("idle");

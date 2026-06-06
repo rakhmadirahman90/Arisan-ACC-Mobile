@@ -529,6 +529,7 @@ export default function App() {
                       history={history}
                       onNavigateToKocokan={() => setActiveTab("kocok")}
                       onTogglePayment={handleTogglePayment}
+                      onInstantPayAll={handleInstantPayAll}
                       activeLivery={activeLivery}
                       isAdmin={isAdmin}
                     />
@@ -547,6 +548,7 @@ export default function App() {
                       payments={payments}
                       config={config}
                       isAdmin={isAdmin}
+                      history={history}
                     />
                   )}
 

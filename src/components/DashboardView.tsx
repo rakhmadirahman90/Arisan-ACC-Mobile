@@ -41,6 +41,7 @@ interface DashboardViewProps {
   history: ArisanHistory[];
   onNavigateToKocokan: () => void;
   onTogglePayment: (memberId: string) => void;
+  onInstantPayAll?: () => void;
   activeLivery: any;
   isAdmin: boolean;
 }
@@ -52,6 +53,7 @@ export default function DashboardView({
   history,
   onNavigateToKocokan,
   onTogglePayment,
+  onInstantPayAll,
   activeLivery,
   isAdmin,
 }: DashboardViewProps) {
@@ -524,6 +526,26 @@ export default function DashboardView({
             </button>
           )}
         </div>
+
+        {/* Shortcut Bayar Semua (Admin Only) */}
+        {isAdmin && unpaidCount > 0 && onInstantPayAll && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={() => {
+              const confirmMsg = `⚠️ KONFIRMASI MASSAL: Apakah Anda yakin ingin menandai LUNAS iuran seluruh anggota (${unpaidCount} pembalap) untuk Putaran ${currentRound}?`;
+              if (window.confirm(confirmMsg)) {
+                onInstantPayAll();
+              }
+            }}
+            className="w-full py-2.5 px-4 rounded-xl text-xs font-bold font-mono tracking-wide flex items-center justify-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/25 hover:border-emerald-500/40 text-emerald-400 shadow-md transition duration-200 cursor-pointer"
+          >
+            <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+            BAYAR SEMUA ANGGOTA ({unpaidCount} TERTUNGGAK) ⚡
+          </motion.button>
+        )}
 
         {/* Member Grid Row */}
         <div className="grid grid-cols-1 gap-2 max-h-[250px] overflow-y-auto scrollbar-none pr-0.5">

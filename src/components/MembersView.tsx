@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Member, PaymentStatus, ArisanConfig } from "../types";
+import { Member, PaymentStatus, ArisanConfig, ArisanHistory } from "../types";
 import { compressImage } from "../lib/imageUtils";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
@@ -20,7 +20,12 @@ import {
   Camera,
   Upload,
   CheckSquare,
-  Square
+  Square,
+  Coins,
+  Clock,
+  Sparkles,
+  History,
+  Filter
 } from "lucide-react";
 
 interface MembersViewProps {
@@ -35,6 +40,7 @@ interface MembersViewProps {
   payments?: PaymentStatus[];
   config?: ArisanConfig;
   isAdmin?: boolean;
+  history?: ArisanHistory[];
 }
 
 const PAINT_COLORS = [
@@ -60,8 +66,10 @@ export default function MembersView({
   payments = [],
   config,
   isAdmin = false,
+  history = [],
 }: MembersViewProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState<"name" | "joinDate" | "paymentStatus">("name");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [importText, setImportText] = useState("");
@@ -70,6 +78,7 @@ export default function MembersView({
   // Selection mode states
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedMemberForDetail, setSelectedMemberForDetail] = useState<Member | null>(null);
   
   // New member form states
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -331,6 +340,25 @@ export default function MembersView({
       member.name.toLowerCase().includes(term) ||
       member.vehicle.toLowerCase().includes(term)
     );
+  }).sort((a, b) => {
+    if (sortOption === "name") {
+      return a.name.localeCompare(b.name);
+    } else if (sortOption === "joinDate") {
+      const dateA = new Date(a.joinDate).getTime();
+      const dateB = new Date(b.joinDate).getTime();
+      if (!isNaN(dateA) && !isNaN(dateB)) {
+        return dateA - dateB; // oldest first
+      }
+      return a.joinDate.localeCompare(b.joinDate);
+    } else if (sortOption === "paymentStatus") {
+      const aPaid = payments.filter((p) => p.memberId === a.id && p.isPaid).length;
+      const bPaid = payments.filter((p) => p.memberId === b.id && p.isPaid).length;
+      if (bPaid !== aPaid) {
+        return bPaid - aPaid; // most paid first
+      }
+      return a.name.localeCompare(b.name);
+    }
+    return 0;
   });
 
   return (
@@ -344,16 +372,32 @@ export default function MembersView({
       <div className="md:col-span-5 flex flex-col space-y-3 mb-3 shrink-0 md:h-full max-h-[50vh] md:max-h-full overflow-y-auto scrollbar-none pb-2">
         {/* Search Bar + Admin Actions Toolbar */}
       <div className="flex flex-col gap-2">
-        <div className="flex gap-2">
+        {/* Search Bar - Full Width */}
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
+          <input
+            type="text"
+            placeholder="Cari nama atau merek kendaraan..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={`w-full bg-white/5 border border-white/10 backdrop-blur-md rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:${activeLivery.borderFocus}`}
+          />
+        </div>
+
+        {/* Filter and Admin Controls */}
+        <div className="flex gap-2 items-center justify-between">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
-            <input
-              type="text"
-              placeholder="Cari anggota arisan..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full bg-white/5 border border-white/10 backdrop-blur-md rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:${activeLivery.borderFocus}`}
-            />
+             <select
+               value={sortOption}
+               onChange={(e) => setSortOption(e.target.value as any)}
+               className={`w-full bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-md rounded-xl pl-8 pr-3 py-2 text-xs text-white focus:outline-none focus:${activeLivery.borderFocus} appearance-none cursor-pointer transition`}
+               title="Urutkan Anggota"
+             >
+               <option value="name" className="bg-zinc-900">Nama (A-Z)</option>
+               <option value="joinDate" className="bg-zinc-900">Urut Taggal Join</option>
+               <option value="paymentStatus" className="bg-zinc-900">Urut Status Lunas</option>
+             </select>
+             <Filter className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-zinc-500 pointer-events-none" />
           </div>
           {isAdmin && (
             <div className="flex gap-1.5 shrink-0">
@@ -812,13 +856,17 @@ export default function MembersView({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.03 }}
-                  onClick={isSelectionMode && isAdmin ? () => toggleSelectMember(member.id) : undefined}
-                  className={`border rounded-xl p-3.5 flex items-center justify-between shadow-sm relative overflow-hidden transition-all duration-200 ${
+                  onClick={
+                    isSelectionMode && isAdmin
+                      ? () => toggleSelectMember(member.id)
+                      : () => setSelectedMemberForDetail(member)
+                  }
+                  className={`border rounded-xl p-3.5 flex items-center justify-between shadow-sm relative overflow-hidden transition-all duration-200 cursor-pointer ${
                     isSelectionMode && isAdmin
                       ? selectedIds.includes(member.id)
-                        ? "bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/15 cursor-pointer active:scale-[0.99]"
-                        : "bg-white/5 border-white/5 hover:bg-white/10 cursor-pointer active:scale-[0.99]"
-                      : "bg-white/5 border-white/5 hover:border-white/10"
+                        ? "bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/15 active:scale-[0.99]"
+                        : "bg-white/5 border-white/5 hover:bg-white/10 active:scale-[0.99]"
+                      : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20 hover:bg-white/[0.08]"
                   }`}
                 >
                   {/* Visual glow on winner check */}
@@ -968,6 +1016,229 @@ export default function MembersView({
           )}
         </div>
       </div>
+
+      {/* Slide-over detail panel for a selected member */}
+      <AnimatePresence>
+        {selectedMemberForDetail && (() => {
+          const m = selectedMemberForDetail;
+          const memberPayments = payments.filter((p) => p.memberId === m.id);
+          const totalRounds = config?.totalRounds || 10;
+          const paidRoundsCount = memberPayments.filter((p) => p.isPaid).length;
+          const unpaidRoundsCount = Math.max(0, totalRounds - paidRoundsCount);
+          const contributionAmount = config?.contributionAmount || 0;
+          
+          const totalPaidSum = paidRoundsCount * contributionAmount;
+          const totalUnpaidSum = unpaidRoundsCount * contributionAmount;
+          
+          const hasWon = m.wonRound !== null;
+          const winningRecords = history.filter((h) => h.winnerId === m.id);
+          const totalWins = Math.max(winningRecords.length, hasWon ? 1 : 0);
+
+          const formatRupiah = (val: number) => {
+            return new Intl.NumberFormat("id-ID", {
+              style: "currency",
+              currency: "IDR",
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(val);
+          };
+
+          return (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedMemberForDetail(null)}
+                className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] cursor-pointer"
+              />
+
+              {/* Slide-over panel container */}
+              <motion.div
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 220 }}
+                className="fixed right-0 top-0 bottom-0 w-full max-w-sm bg-[#0c0c10] border-l border-white/10 shadow-2xl z-[110] flex flex-col overflow-hidden text-left"
+              >
+                {/* Header detail */}
+                <div className="p-5 border-b border-white/10 bg-[#07070b] relative flex items-start justify-between">
+                  <div className="flex gap-4 items-center">
+                    {m.photo ? (
+                      <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/15 shadow-lg shrink-0">
+                        <img src={m.photo} alt={m.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      </div>
+                    ) : (
+                      <div className={`w-14 h-14 rounded-2xl text-[18px] font-black tracking-tighter text-zinc-100 font-mono flex flex-col items-center justify-center shrink-0 shadow-inner select-none ${m.avatarColor}`}>
+                        <span>{m.name.substring(0, 2).toUpperCase()}</span>
+                        <span className="text-[9px] opacity-75 font-normal mt-0.5 leading-none font-sans">
+                          {m.name.includes("Bro") ? "MALE" : m.name.includes("Sist") ? "FEM" : "DRV"}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="min-w-0">
+                      <span className="text-[9px] px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded-full font-mono font-bold text-blue-400">
+                        INFO ANGGOTA
+                      </span>
+                      <h3 className="text-base font-black text-white mt-1 truncate max-w-[180px]" title={m.name}>
+                        {m.name}
+                      </h3>
+                      <p className="text-xs text-zinc-400 font-semibold truncate flex items-center gap-1 mt-0.5">
+                        <Car className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                        {m.vehicle}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedMemberForDetail(null)}
+                    className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition border border-transparent hover:border-white/5 cursor-pointer active:scale-95"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Main scrollable body */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-5 scrollbar-none pb-12">
+                  
+                  {/* PHONE & JOIN DATE METADATA */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl flex flex-col justify-between">
+                      <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-wider">Telepon / WA</span>
+                      <span className="text-xs font-mono font-medium text-zinc-300 mt-1 truncate">{m.phone}</span>
+                    </div>
+                    <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl flex flex-col justify-between">
+                      <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-wider">Terdaftar Sejak</span>
+                      <span className="text-xs font-mono font-medium text-zinc-300 mt-1">{m.joinDate}</span>
+                    </div>
+                  </div>
+
+                  {/* WIN WIN STATUS BANNER */}
+                  {hasWon ? (
+                    <div className="bg-gradient-to-r from-amber-950/40 via-amber-900/10 to-transparent border border-amber-500/30 p-4 rounded-xl relative overflow-hidden">
+                      <div className="absolute -right-3 -bottom-3 text-amber-500/10 rotate-12">
+                        <Trophy className="w-20 h-20 fill-amber-500/5" />
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                          <Trophy className="w-5 h-5 fill-amber-500/10" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-[11px] font-black text-amber-400 uppercase tracking-widest font-mono">
+                            PEMENANG ARISAN (x{totalWins})
+                          </h4>
+                          <p className="text-xs text-white/95 font-bold mt-0.5">
+                            Menang di Putaran {m.wonRound}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-2.5 pt-2 border-t border-amber-500/10 text-[10px] text-zinc-400 font-mono">
+                        {winningRecords.length > 0 ? (
+                          <div className="space-y-1">
+                            {winningRecords.map((item) => (
+                              <div key={item.id} className="flex justify-between items-center bg-amber-500/5 p-1 px-1.5 rounded-sm">
+                                <span>Putaran {item.round}</span>
+                                <span className="font-bold text-amber-300">{formatRupiah(item.prizeAmount)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex justify-between items-center bg-amber-500/5 p-1 px-1.5 rounded-sm">
+                            <span>Status</span>
+                            <span className="font-bold text-amber-300">Konfirmasi Pemegang</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-white/[0.02] border border-white/5 p-4 rounded-xl flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-zinc-800/50 border border-white/5 flex items-center justify-center text-zinc-500 shrink-0">
+                        <Clock className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest font-mono">
+                          STATUS MENANG
+                        </h4>
+                        <p className="text-xs text-zinc-500 font-semibold mt-0.5">
+                          Masih antre di lintasan (Menunggu Putaran Kocok)
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* CONTRIBUTION SUMMARY BALANCE */}
+                  <div className="p-3.5 bg-gradient-to-b from-[#0e0e14] to-[#08080c] border border-white/5 rounded-xl space-y-3">
+                    <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest font-mono flex items-center gap-1.5">
+                      <Coins className="w-3.5 h-3.5 text-zinc-400" />
+                      Ringkasan Kontribusi
+                    </h4>
+                    
+                    <div className="space-y-2 text-xs font-mono">
+                      <div className="flex justify-between items-center py-1 border-b border-white/[0.03]">
+                        <span className="text-zinc-500 font-bold">LUNAS ({paidRoundsCount}/{totalRounds})</span>
+                        <span className="text-emerald-400 font-black">{formatRupiah(totalPaidSum)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-zinc-500 font-bold">TERTUNGGAK</span>
+                        <span className="text-red-400 font-black">{formatRupiah(totalUnpaidSum)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* DETAILED CONTRIBUTION HISTORY PER ROUND (SCROLL PIPELINE) */}
+                  <div className="space-y-2">
+                    <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono flex items-center gap-1.5 px-0.5 mb-1">
+                      <History className="w-3.5 h-3.5" />
+                      Log Pembayaran Tiap Putaran
+                    </h4>
+
+                    <div className="space-y-1.5 max-h-[250px] overflow-y-auto scrollbar-none pr-0.5">
+                      {Array.from({ length: totalRounds }).map((_, i) => {
+                        const roundNum = i + 1;
+                        const pStatus = memberPayments.find((p) => p.round === roundNum);
+                        const isLunas = pStatus?.isPaid || false;
+
+                        return (
+                          <div
+                            key={roundNum}
+                            className={`flex justify-between items-center p-2.5 rounded-lg border text-xs font-mono transition ${
+                              isLunas
+                                ? "bg-emerald-500/[0.02] border-emerald-500/10"
+                                : "bg-neutral-900/40 border-neutral-800/60"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className={`w-1.5 h-1.5 rounded-full ${isLunas ? "bg-emerald-500" : "bg-zinc-600"}`}></span>
+                              <span className="font-bold text-zinc-300">Putaran {roundNum}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-zinc-500">{formatRupiah(contributionAmount)}</span>
+                              
+                              {isLunas ? (
+                                <span className="flex items-center gap-0.5 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded text-[8px] font-black text-emerald-400">
+                                  <Check className="w-2.5 h-2.5" /> LUNAS
+                                </span>
+                              ) : (
+                                <span className="bg-zinc-800/50 border border-zinc-700/30 px-1.5 py-0.5 rounded text-[8px] font-bold text-zinc-500">
+                                  BELUM
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                </div>
+              </motion.div>
+            </>
+          );
+        })()}
+      </AnimatePresence>
     </motion.div>
   );
 }
