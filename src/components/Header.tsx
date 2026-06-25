@@ -59,7 +59,7 @@ export default function Header() {
               </span>
             </div>
             <h1 className="text-base sm:text-lg font-black uppercase tracking-tight text-white leading-tight">
-              Arisan Portal
+              Portal Arisan ACC
             </h1>
           </div>
           <div className="shrink-0 flex items-center bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 p-[5px] px-2.5 rounded-lg border border-white/10 shadow-lg select-none">

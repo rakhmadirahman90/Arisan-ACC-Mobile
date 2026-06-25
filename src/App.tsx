@@ -356,7 +356,7 @@ export default function App() {
           
           <div className="text-center space-y-2">
             <h1 className="text-xl font-black italic tracking-tighter text-white uppercase font-mono">
-              CLASER ARISAN <span className={activeLivery.textAccent}>PRO</span>
+              PORTAL ARISAN <span className={activeLivery.textAccent}>ACC</span>
             </h1>
             <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest animate-pulse">
               Sinkronisasi Database Real-time...

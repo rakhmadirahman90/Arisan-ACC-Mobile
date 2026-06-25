@@ -1,6 +1,6 @@
 {
-  "name": "Claser Arisan Mobile",
-  "description": "Aplikasi Arisan Kontemporer Berbasis Mobile untuk Komunitas Auto Claser Club",
+  "name": "Portal Arisan ACC",
+  "description": "Aplikasi Portal Arisan Resmi Auto Claser Club (ACC) dengan sinkronisasi database real-time.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
