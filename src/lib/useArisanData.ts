@@ -1,55 +1,89 @@
 import { useState, useEffect } from "react";
-import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { 
+  collection, 
+  doc, 
+  onSnapshot, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  orderBy, 
+  writeBatch,
+  getDocs,
+  limit
+} from "firebase/firestore";
 import toast from "react-hot-toast";
 import { db } from "./firebase";
 import { Member, ArisanConfig, PaymentStatus, ArisanHistory } from "../types";
 import { INITIAL_MEMBERS, INITIAL_CONFIG, INITIAL_PAYMENTS, INITIAL_HISTORY } from "../data";
 
 export function useArisanData() {
-  const [members, setMembers] = useState<Member[]>(INITIAL_MEMBERS);
-  const [config, setConfig] = useState<ArisanConfig>(INITIAL_CONFIG);
-  const [payments, setPayments] = useState<PaymentStatus[]>(INITIAL_PAYMENTS);
-  const [history, setHistory] = useState<ArisanHistory[]>(INITIAL_HISTORY);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [config, setConfig] = useState<ArisanConfig | null>(null);
+  const [payments, setPayments] = useState<PaymentStatus[]>([]);
+  const [history, setHistory] = useState<ArisanHistory[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // We assume the config is at document 'config/main'
-    const unsubscribeConfig = onSnapshot(doc(db, "config", "main"), (docSnap) => {
+    let isInitialized = false;
+
+    // 1. Listen for Config (and Seed if missing)
+    const unsubscribeConfig = onSnapshot(doc(db, "config", "main"), async (docSnap) => {
       if (docSnap.exists()) {
         setConfig(docSnap.data() as ArisanConfig);
       } else {
-        // Database is fresh or uninitialized. Seed everything once!
-        setDoc(doc(db, "config", "main"), INITIAL_CONFIG);
-        INITIAL_MEMBERS.forEach((m) => {
-          setDoc(doc(db, "members", m.id), m);
-        });
-        INITIAL_PAYMENTS.forEach((p) => {
-          setDoc(doc(db, "payments", `${p.memberId}-${p.round}`), p);
-        });
-        INITIAL_HISTORY.forEach((h) => {
-          setDoc(doc(db, "history", h.id), h);
-        });
+        // Initial Seed
+        console.log("Initializing database with defaults...");
+        try {
+          const batch = writeBatch(db);
+          batch.set(doc(db, "config", "main"), INITIAL_CONFIG);
+          
+          INITIAL_MEMBERS.forEach((m) => {
+            batch.set(doc(db, "members", m.id), m);
+          });
+          
+          INITIAL_PAYMENTS.forEach((p) => {
+            batch.set(doc(db, "payments", `${p.memberId}-${p.round}`), p);
+          });
+          
+          INITIAL_HISTORY.forEach((h) => {
+            batch.set(doc(db, "history", h.id), h);
+          });
+          
+          await batch.commit();
+        } catch (err) {
+          console.error("Seeding failed:", err);
+        }
       }
     });
 
-    const unsubscribeMembers = onSnapshot(collection(db, "members"), (snapshot) => {
+    // 2. Listen for Members (Ordered by name)
+    const qMembers = query(collection(db, "members"), orderBy("name", "asc"));
+    const unsubscribeMembers = onSnapshot(qMembers, (snapshot) => {
       const data = snapshot.docs.map((d) => d.data() as Member);
       setMembers(data);
     });
 
+    // 3. Listen for Payments
     const unsubscribePayments = onSnapshot(collection(db, "payments"), (snapshot) => {
       const data = snapshot.docs.map((d) => d.data() as PaymentStatus);
       setPayments(data);
     });
 
-    const unsubscribeHistory = onSnapshot(collection(db, "history"), (snapshot) => {
+    // 4. Listen for History (Ordered by round descending)
+    const qHistory = query(collection(db, "history"), orderBy("round", "desc"));
+    const unsubscribeHistory = onSnapshot(qHistory, (snapshot) => {
       const data = snapshot.docs.map((d) => d.data() as ArisanHistory);
       setHistory(data);
     });
 
-    setLoading(false);
+    // Simple delay to ensure snapshots start resolving
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500);
 
     return () => {
+      clearTimeout(timer);
       unsubscribeConfig();
       unsubscribeMembers();
       unsubscribePayments();
@@ -59,6 +93,7 @@ export function useArisanData() {
 
   const addMember = async (m: Omit<Member, "id" | "joinDate" | "wonRound">) => {
     try {
+      if (!config) return;
       const newId = `mem-${Date.now()}`;
       const newMember: Member = {
         ...m,
@@ -70,14 +105,19 @@ export function useArisanData() {
         }),
         wonRound: null,
       };
-      await setDoc(doc(db, "members", newId), newMember);
 
+      const batch = writeBatch(db);
+      batch.set(doc(db, "members", newId), newMember);
+
+      // Prepopulate current round payment setup
       const newPayment: PaymentStatus = {
         memberId: newId,
         round: config.currentRound,
         isPaid: false,
       };
-      await setDoc(doc(db, "payments", `${newId}-${config.currentRound}`), newPayment);
+      batch.set(doc(db, "payments", `${newId}-${config.currentRound}`), newPayment);
+      
+      await batch.commit();
       toast.success("Anggota berhasil ditambahkan!");
     } catch (err) {
       toast.error("Gagal menambahkan anggota");
@@ -86,12 +126,19 @@ export function useArisanData() {
 
   const deleteMember = async (id: string) => {
     try {
-      await deleteDoc(doc(db, "members", id));
-      payments.forEach(async (p) => {
+      const batch = writeBatch(db);
+      batch.delete(doc(db, "members", id));
+      
+      // We need to delete associated payments too
+      // Since we don't have a list of rounds for this member easily without querying,
+      // but we have the local payments state.
+      payments.forEach((p) => {
         if (p.memberId === id) {
-          await deleteDoc(doc(db, "payments", `${id}-${p.round}`));
+          batch.delete(doc(db, "payments", `${id}-${p.round}`));
         }
       });
+      
+      await batch.commit();
       toast.success("Anggota berhasil dihapus!");
     } catch (err) {
       toast.error("Gagal menghapus anggota");
@@ -186,11 +233,14 @@ export function useArisanData() {
 
   const instantPayAll = async () => {
     try {
+      if (!config) return;
       const round = config.currentRound;
-      members.forEach(async (m) => {
+      const batch = writeBatch(db);
+      
+      members.forEach((m) => {
         const isPaid = payments.find((p) => p.memberId === m.id && p.round === round)?.isPaid;
         if (!isPaid) {
-          await setDoc(doc(db, "payments", `${m.id}-${round}`), {
+          batch.set(doc(db, "payments", `${m.id}-${round}`), {
             memberId: m.id,
             round,
             isPaid: true,
@@ -198,6 +248,8 @@ export function useArisanData() {
           }, { merge: true });
         }
       });
+      
+      await batch.commit();
       toast.success("Semua anggota telah dilunaskan!");
     } catch (err) {
       toast.error("Gagal melunasi semua pembayaran");
@@ -206,15 +258,18 @@ export function useArisanData() {
 
   const confirmWinner = async (winnerId: string, prizeAmount: number) => {
     try {
+      if (!config) return;
       const winnerMember = members.find((m) => m.id === winnerId);
       if (!winnerMember) return;
 
+      const batch = writeBatch(db);
+
       // mark winner
-      await updateDoc(doc(db, "members", winnerId), { wonRound: config.currentRound });
+      batch.update(doc(db, "members", winnerId), { wonRound: config.currentRound });
 
       // history log
       const histId = `hist-${Date.now()}`;
-      await setDoc(doc(db, "history", histId), {
+      batch.set(doc(db, "history", histId), {
         id: histId,
         round: config.currentRound,
         winnerId,
@@ -231,16 +286,18 @@ export function useArisanData() {
 
       // increment round
       const nextRound = config.currentRound + 1;
-      await updateDoc(doc(db, "config", "main"), { currentRound: nextRound });
+      batch.update(doc(db, "config", "main"), { currentRound: nextRound });
 
       // prepopulate payments for next round
-      members.forEach(async (m) => {
-        await setDoc(doc(db, "payments", `${m.id}-${nextRound}`), {
+      members.forEach((m) => {
+        batch.set(doc(db, "payments", `${m.id}-${nextRound}`), {
           memberId: m.id,
           round: nextRound,
           isPaid: false,
         });
       });
+      
+      await batch.commit();
       toast.success(`Pemenang Putaran ${config.currentRound} berhasil disimpan!`);
     } catch (err) {
       toast.error("Gagal menyimpan pemenang");
@@ -249,14 +306,20 @@ export function useArisanData() {
 
   const resetData = async () => {
     try {
-      members.forEach(m => deleteDoc(doc(db, "members", m.id)));
-      payments.forEach(p => deleteDoc(doc(db, "payments", `${p.memberId}-${p.round}`)));
-      history.forEach(h => deleteDoc(doc(db, "history", h.id)));
+      const batch = writeBatch(db);
       
-      await setDoc(doc(db, "config", "main"), INITIAL_CONFIG);
-      INITIAL_MEMBERS.forEach(m => setDoc(doc(db, "members", m.id), m));
-      INITIAL_HISTORY.forEach(h => setDoc(doc(db, "history", h.id), h));
-      INITIAL_PAYMENTS.forEach(p => setDoc(doc(db, "payments", `${p.memberId}-${p.round}`), p));
+      // Delete everything
+      members.forEach(m => batch.delete(doc(db, "members", m.id)));
+      payments.forEach(p => batch.delete(doc(db, "payments", `${p.memberId}-${p.round}`)));
+      history.forEach(h => batch.delete(doc(db, "history", h.id)));
+      
+      // Re-seed with initial data
+      batch.set(doc(db, "config", "main"), INITIAL_CONFIG);
+      INITIAL_MEMBERS.forEach(m => batch.set(doc(db, "members", m.id), m));
+      INITIAL_HISTORY.forEach(h => batch.set(doc(db, "history", h.id), h));
+      INITIAL_PAYMENTS.forEach(p => batch.set(doc(db, "payments", `${p.memberId}-${p.round}`), p));
+      
+      await batch.commit();
       toast.success("Semua data berhasil direset ke pengaturan awal!");
     } catch (err) {
       toast.error("Gagal mereset data");
@@ -298,7 +361,11 @@ export function useArisanData() {
 
   const importMembers = async (newMembersList: Omit<Member, "id" | "joinDate" | "wonRound">[]) => {
     try {
-      const promises = newMembersList.map(async (m) => {
+      if (!config) return;
+      const batch = writeBatch(db);
+      const round = config.currentRound;
+
+      newMembersList.forEach((m) => {
         const newId = `mem-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
         const newMember: Member = {
           ...m,
@@ -310,18 +377,18 @@ export function useArisanData() {
           }),
           wonRound: null,
         };
-        await setDoc(doc(db, "members", newId), newMember);
+        batch.set(doc(db, "members", newId), newMember);
 
         // Prepopulate current round payment setup
         const newPayment: PaymentStatus = {
           memberId: newId,
-          round: config.currentRound,
+          round: round,
           isPaid: false,
         };
-        await setDoc(doc(db, "payments", `${newId}-${config.currentRound}`), newPayment);
+        batch.set(doc(db, "payments", `${newId}-${round}`), newPayment);
       });
 
-      await Promise.all(promises);
+      await batch.commit();
       toast.success(`${newMembersList.length} anggota berhasil di-import massal!`);
     } catch (err) {
       toast.error("Gagal melakukan import data anggota");

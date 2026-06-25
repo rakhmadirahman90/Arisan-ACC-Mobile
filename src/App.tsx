@@ -331,6 +331,42 @@ export default function App() {
   }, [loading, config, members, payments]);
 
 
+  const activeLivery = LIVERY_THEMES[(localLivery || config?.livery || "blue") as keyof typeof LIVERY_THEMES] || LIVERY_THEMES.blue;
+
+  if (loading || !config) {
+    return (
+      <div 
+        className="min-h-screen w-full bg-[#020203] text-slate-200 font-sans flex flex-col items-center justify-center p-4 relative overflow-hidden"
+        style={{ background: "radial-gradient(circle at 50% 50%, #0a111a 0%, #020203 100%)" }}
+      >
+        <div className={`absolute top-10 left-10 w-96 h-96 ${activeLivery.ambientFlare1} rounded-full blur-3xl pointer-events-none opacity-20`}></div>
+        <div className={`absolute bottom-10 right-10 w-96 h-96 ${activeLivery.ambientFlare2} rounded-full blur-3xl pointer-events-none opacity-20`}></div>
+        
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-6 z-10"
+        >
+          <div className="relative">
+            <div className={`w-20 h-20 rounded-2xl border-2 border-dashed ${activeLivery.borderAccent} animate-spin`}></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Gauge className={`w-10 h-10 ${activeLivery.textAccent} animate-pulse`} />
+            </div>
+          </div>
+          
+          <div className="text-center space-y-2">
+            <h1 className="text-xl font-black italic tracking-tighter text-white uppercase font-mono">
+              CLASER ARISAN <span className={activeLivery.textAccent}>PRO</span>
+            </h1>
+            <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest animate-pulse">
+              Sinkronisasi Database Real-time...
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   // Dynamic side panel statistics calculations
   const arisanShare = Math.round((config.contributionAmount * 5) / 6);
   const consumptionShare = config.contributionAmount - arisanShare;
@@ -365,8 +401,6 @@ export default function App() {
       };
     })
   ].reverse().slice(0, 4);
-
-  const activeLivery = LIVERY_THEMES[(localLivery || config.livery || "blue") as keyof typeof LIVERY_THEMES] || LIVERY_THEMES.blue;
 
   return (
     <div 
